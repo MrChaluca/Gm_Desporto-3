@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GM Desporto — Admin | Ocorrências</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <header class="top-header">
+        <div class="top-left">
+          <a href="principal.html" data-route="adminInventory" class="btn-back-top">← Voltar</a>
+          <div class="brand-main">
+            <div class="brand-text">
+              <span class="brand-title">GM Desporto</span>
+              <span class="brand-subtitle">Gestão de Equipamentos Desportivos</span>
+            </div>
+          </div>
+        </div>
+        <div class="top-right">
+          <button id="btnMenuToggleRelatados" class="btn-back-top" type="button">☰ Menu</button>
+          <div class="brand-school">
+            <img
+              src="imagens/logogm.png"
+              alt="Agrupamento de Escolas Dr. Ginestal Machado"
+              class="logo-school"
+            />
+          </div>
+        </div>
+      </header>
+
+      <nav class="main-menu" id="mainMenu">
+        <ul>
+          <li><a href="principal.html#dashboard" data-route="adminInventory" data-hash="#dashboard" class="menu-link">Painel Admin</a></li>
+          <li>
+            <a href="principal.html#cadastro" data-route="adminInventory" data-hash="#cadastro" class="menu-link">Adicionar equipamento</a>
+          </li>
+          <li><a href="principal.html#inventario" data-route="adminInventory" data-hash="#inventario" class="menu-link">Inventário</a></li>
+          <li><a href="membros.html" data-route="adminMembers" class="menu-link">Gestão de membros</a></li>
+          <li><a href="relatados.html" data-route="adminUsage" class="menu-link">Listagem de uso</a></li>
+          <li><a href="relatos.html" data-route="adminReports" class="menu-link">Ocorrências</a></li>
+        </ul>
+      </nav>
+
+      <main class="content content-main">
+        <section class="card card-wide">
+          <div class="card-header card-header-left">
+            <h1 class="card-title">Relatos</h1>
+            <p class="card-subtitle">
+              Gestão dos relatos enviados pelos professores. O admin pode retirar do stock
+              ou negar cada relato.
+            </p>
+          </div>
+
+          <div class="inventory-wrapper">
+            <table class="inventory-table">
+              <thead>
+                <tr>
+                  <th>Data e hora</th>
+                  <th>Equipamento</th>
+                  <th>Tipo</th>
+                  <th>Qtd.</th>
+                  <th>Descrição</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="relatadosAdminBody">
+                <tr class="inventory-empty-row">
+                  <td colspan="6">A carregar…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      <footer class="page-footer">
+        <p>© 2026 GM Desporto</p>
+      </footer>
+    </div>
+
+    <div
+      class="modal-overlay hidden"
+      id="relatadosConfirmModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="relatadosConfirmTitle"
+    >
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="relatadosConfirmTitle">Confirmar ação</h3>
+          <button
+            type="button"
+            class="modal-close"
+            id="relatadosConfirmClose"
+            aria-label="Fechar"
+          >
+            ✕
+          </button>
+        </div>
+        <p class="modal-subtitle" id="relatadosConfirmText"></p>
+        <div class="form-actions" style="margin-top: 1rem">
+          <button type="button" class="btn-secondary" id="relatadosConfirmCancel">
+            Cancelar
+          </button>
+          <button type="button" class="btn-primary" id="relatadosConfirmOk">
+            Tenho a certeza
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="appShell.js"></script>
+    <script src="relatados.js"></script>
+  </body>
+</html>

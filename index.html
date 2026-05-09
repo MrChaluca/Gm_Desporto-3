@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GM Desporto — Gestão de Equipamentos</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <header class="top-header">
+        <div class="brand-main">
+          <div class="brand-text">
+            <span class="brand-title">GM Desporto</span>
+            <span class="brand-subtitle">Gestão de Equipamentos Desportivos</span>
+          </div>
+        </div>
+        <div class="brand-school">
+          <img
+            src="imagens/logogm.png"
+            alt="Agrupamento de Escolas Dr. Ginestal Machado"
+            class="logo-school"
+          />
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="card login-card">
+          <div class="card-header">
+            <h1 class="card-title" id="loginTitle">ACESSO</h1>
+            <p class="card-subtitle">
+              Introduza as suas credenciais para continuar
+            </p>
+          </div>
+
+          <div class="login-tabs" role="tablist" aria-label="Tipo de acesso">
+            <button
+              type="button"
+              class="login-tab active"
+              id="tabProfessor"
+              data-role="professor"
+              role="tab"
+              aria-selected="true"
+            >
+              Professor
+            </button>
+            <button
+              type="button"
+              class="login-tab"
+              id="tabAdmin"
+              data-role="admin"
+              role="tab"
+              aria-selected="false"
+            >
+              Admin
+            </button>
+          </div>
+
+          <form class="login-form" id="loginForm">
+            <div class="form-group">
+              <label for="username">Conta</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder="Sua conta@exemplo.pt"
+                autocomplete="username"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="password">Palavra-passe</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="A sua palavra-passe"
+                autocomplete="current-password"
+                required
+              />
+            </div>
+            <button type="submit" class="btn-primary">ENTRAR</button>
+            <div class="form-message" id="loginMessage" role="status"></div>
+          </form>
+
+          <form class="login-form" id="recoverForm" style="display: none;">
+            <div class="form-group">
+              <label for="recoverEmail">Email da conta</label>
+              <input
+                type="email"
+                id="recoverEmail"
+                name="recoverEmail"
+                placeholder="seu.email@exemplo.pt"
+                autocomplete="email"
+                required
+              />
+            </div>
+            <button type="submit" class="btn-primary">RECUPERAR CONTA</button>
+            <div class="form-message" id="recoverMessage" role="status"></div>
+          </form>
+
+          <form class="login-form" id="registroForm" style="display: none;">
+            <div class="form-group">
+              <label for="regNome">Nome</label>
+              <input
+                type="text"
+                id="regNome"
+                name="regNome"
+                placeholder="Seu nome completo"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="regEmail">Email</label>
+              <input
+                type="email"
+                id="regEmail"
+                name="regEmail"
+                placeholder="seu.email@exemplo.pt"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="regRole">Função</label>
+              <select id="regRole" name="regRole" required>
+                <option value="professor">Professor</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-primary">SOLICITAR REGISTO</button>
+            <div class="form-message" id="registroMessage" role="status"></div>
+          </form>
+
+          <div class="registration-toggle">
+            <button type="button" id="btnToggleRegistro" class="btn-link">Não tem conta? Registar-se</button>
+            <button type="button" id="btnToggleRecover" class="btn-link">Recuperar conta</button>
+          </div>
+        </section>
+      </main>
+
+      <footer class="page-footer">
+        <p>
+          © 2026 GM Desporto — Gestão de Equipamentos Desportivos
+        </p>
+      </footer>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="appShell.js"></script>
+    <script src="login.js"></script>
+  </body>
+</html>
+

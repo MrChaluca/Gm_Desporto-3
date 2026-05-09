@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GM Desporto — Admin | Gestão de Membros</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <header class="top-header">
+        <div class="top-left">
+          <a href="principal.html" data-route="adminInventory" class="btn-back-top">← Voltar</a>
+          <div class="brand-main">
+            <div class="brand-text">
+              <span class="brand-title">GM Desporto</span>
+              <span class="brand-subtitle">Gestão de Equipamentos Desportivos</span>
+            </div>
+          </div>
+        </div>
+        <div class="top-right">
+          <button id="btnMenuToggleMembros" class="btn-back-top" type="button">
+            ☰ Menu
+          </button>
+          <div class="brand-school">
+            <img
+              src="imagens/logogm.png"
+              alt="Agrupamento de Escolas Dr. Ginestal Machado"
+              class="logo-school"
+            />
+          </div>
+        </div>
+      </header>
+
+      <nav class="main-menu" id="mainMenu">
+        <ul>
+          <li>
+            <a href="principal.html#dashboard" data-route="adminInventory" data-hash="#dashboard" class="menu-link">Painel Admin</a>
+          </li>
+          <li>
+            <a href="principal.html#cadastro" data-route="adminInventory" data-hash="#cadastro" class="menu-link">Adicionar equipamento</a>
+          </li>
+          <li>
+            <a href="principal.html#inventario" data-route="adminInventory" data-hash="#inventario" class="menu-link">Inventário</a>
+          </li>
+          <li>
+            <a href="membros.html" data-route="adminMembers" class="menu-link">Gestão de membros</a>
+          </li>
+          <li>
+            <a href="relatados.html" data-route="adminUsage" class="menu-link">Listagem de uso</a>
+          </li>
+          <li>
+            <a href="relatos.html" data-route="adminReports" class="menu-link">Ocorrências</a>
+          </li>
+        </ul>
+      </nav>
+
+      <main class="content content-main">
+        <section class="card card-wide">
+          <div class="card-header card-header-left">
+            <h1 class="card-title">Membros</h1>
+            <p class="card-subtitle">
+              Gestão de utilizadores registados e solicitações pendentes.
+            </p>
+          </div>
+
+          <div class="tabs">
+            <button class="tab active" id="tabMembros" type="button">
+              Membros
+            </button>
+            <button class="tab" id="tabSolicitacoes" type="button">
+              Solicitações
+            </button>
+          </div>
+
+          <div class="tab-panels">
+            <div id="panelMembros">
+              <div class="inventory-wrapper">
+                <table class="inventory-table">
+                  <thead>
+                    <tr>
+                      <th>Nome</th>
+                      <th>Email</th>
+                      <th>Função</th>
+                    </tr>
+                  </thead>
+                  <tbody id="membrosBody">
+                    <tr class="inventory-empty-row">
+                      <td colspan="3">A carregar membros...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div id="panelSolicitacoes" style="display: none">
+              <div class="inventory-wrapper">
+                <table class="inventory-table">
+                  <thead>
+                    <tr>
+                      <th>Nome</th>
+                      <th>Email</th>
+                      <th>Função</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="solicitacoesBody">
+                    <tr class="inventory-empty-row">
+                      <td colspan="4">A carregar solicitações...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="form-message" id="solicitacoesMsg" role="status"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="page-footer">
+        <p>© 2026 GM Desporto — Gestão de Equipamentos Desportivos</p>
+      </footer>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="appShell.js"></script>
+    <script src="membros.js"></script>
+  </body>
+</html>
+

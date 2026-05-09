@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GM Desporto — Professor | Inventário</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="prof-page">
+    <div class="page-wrapper">
+      <header class="top-header">
+        <div class="top-left">
+          <a href="professores.html" data-route="profReports" class="btn-back-top">← Voltar</a>
+          <div class="brand-main">
+            <div class="brand-text">
+              <span class="brand-title">GM Desporto</span>
+              <span class="brand-subtitle">Área de Professores</span>
+            </div>
+          </div>
+        </div>
+        <div class="top-right">
+          <button id="btnMenuToggleProf" class="btn-back-top" type="button">
+            ☰ Menu
+          </button>
+          <div class="brand-school">
+            <img
+              src="imagens/logogm.png"
+              alt="Agrupamento de Escolas Dr. Ginestal Machado"
+              class="logo-school"
+            />
+          </div>
+        </div>
+      </header>
+
+      <nav class="main-menu main-menu-prof" id="mainMenuProf">
+        <ul>
+          <li>
+            <a href="professores.html" data-route="profReports" class="menu-link">Ocorrências</a>
+          </li>
+          <li>
+            <a href="professores_relatados.html" data-route="profUsage" class="menu-link">Minha listagem</a>
+          </li>
+          <li>
+            <a href="professores_inventario.html" data-route="profInventory" class="menu-link">Inventário (consulta)</a>
+          </li>
+        </ul>
+      </nav>
+
+      <main class="content content-main">
+        <section class="card card-wide" id="inventarioProf">
+          <div class="card-header card-header-left">
+            <h2 class="card-title card-title-small">Inventário (consulta)</h2>
+            <p class="card-subtitle">
+              Lista de equipamentos disponível apenas para consulta. Professores não
+              podem adicionar, editar ou apagar equipamentos.
+            </p>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="pesquisaInventarioProf">Pesquisar inventário:</label>
+            <input
+              id="pesquisaInventarioProf"
+              name="pesquisaInventarioProf"
+              type="text"
+              placeholder="Pesquisar por descrição, local, observação..."
+            />
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="filtroLocalProf">Filtrar por Local:</label>
+            <select id="filtroLocalProf" name="filtroLocalProf">
+              <option value="todos">Todos os locais</option>
+            </select>
+          </div>
+
+          <div class="inventory-wrapper">
+            <table class="inventory-table">
+              <thead>
+                <tr>
+                  <th>EDF/DE</th>
+                  <th>Descrição</th>
+                  <th>Total</th>
+                  <th>Disponível</th>
+                  <th>Empresa/Data</th>
+                  <th>Bom</th>
+                  <th>Razoável</th>
+                  <th>Mau</th>
+                  <th>Abate</th>
+                  <th>Local</th>
+                  <th>Observação</th>
+                  <th>Outras Observações</th>
+                </tr>
+              </thead>
+              <tbody id="inventarioProfBody">
+                <tr class="inventory-empty-row">
+                  <td colspan="12">Ainda não existem equipamentos registados.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      <footer class="page-footer">
+        <p>
+          © 2026 GM Desporto — Área de Professores
+        </p>
+      </footer>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="appShell.js"></script>
+    <script src="supabase.js"></script>
+    <script src="professores.js"></script>
+    <script src="professores_inventario.js"></script>
+  </body>
+</html>
+

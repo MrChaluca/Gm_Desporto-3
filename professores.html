@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GM Desporto — Professor | Ocorrências</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="prof-page">
+    <div class="page-wrapper">
+      <header class="top-header">
+        <div class="top-left">
+          <a href="index.html" data-route="login" class="btn-back-top">← Voltar</a>
+          <div class="brand-main">
+            <div class="brand-text">
+              <span class="brand-title">GM Desporto</span>
+              <span class="brand-subtitle">Área de Professores</span>
+            </div>
+          </div>
+        </div>
+        <div class="top-right">
+          <button id="btnMenuToggleProf" class="btn-back-top" type="button">
+            ☰ Menu
+          </button>
+          <div class="brand-school">
+            <img
+              src="imagens/logogm.png"
+              alt="Agrupamento de Escolas Dr. Ginestal Machado"
+              class="logo-school"
+            />
+          </div>
+        </div>
+      </header>
+
+      <nav class="main-menu main-menu-prof" id="mainMenuProf">
+        <ul>
+          <li>
+            <a href="professores.html" data-route="profReports" class="menu-link">Ocorrências</a>
+          </li>
+          <li>
+            <a href="professores_relatados.html" data-route="profUsage" class="menu-link">Minha listagem</a>
+          </li>
+          <li>
+            <a href="professores_inventario.html" data-route="profInventory" class="menu-link">
+              Inventário (consulta)
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <main class="content content-main">
+        <section class="card card-wide" id="relatar">
+          <div class="card-header card-header-left">
+            <h1 class="card-title">Relatar ocorrência</h1>
+            <p class="card-subtitle">
+              Professores podem relatar equipamentos danificados ou em falta. O
+              stock será atualizado posteriormente pelos responsáveis.
+            </p>
+          </div>
+
+          <form class="equip-form" id="relatarForm" novalidate>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="relatarEquipamento">Equipamento *</label>
+                <select id="relatarEquipamento" name="relatarEquipamento" required>
+                  <option value="">Selecione um equipamento...</option>
+                </select>
+                <small class="input-error" data-error-for="relatarEquipamento"></small>
+              </div>
+
+              <div class="form-group">
+                <label for="relatarQuantidade">Quantidade *</label>
+                <input
+                  type="number"
+                  id="relatarQuantidade"
+                  name="relatarQuantidade"
+                  min="1"
+                  step="1"
+                  placeholder="Ex.: 1"
+                  required
+                />
+                <small class="input-error" data-error-for="relatarQuantidade"></small>
+              </div>
+
+              <div class="form-group">
+                <label for="relatarTipo">Tipo de ocorrência *</label>
+                <select id="relatarTipo" name="relatarTipo" required>
+                  <option value="">Selecione...</option>
+                  <option value="danificado">Danificado</option>
+                  <option value="desaparecido">Desaparecido</option>
+                  <option value="outro">Outro</option>
+                </select>
+                <small class="input-error" data-error-for="relatarTipo"></small>
+              </div>
+
+              <div class="form-group">
+                <label for="relatarDescricao">Descrição</label>
+                <textarea
+                  id="relatarDescricao"
+                  name="relatarDescricao"
+                  rows="3"
+                  placeholder="Explique o que aconteceu ao equipamento..."
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Enviar relatório</button>
+              <button type="button" class="btn-secondary" id="relatarLimpar">
+                Limpar
+              </button>
+            </div>
+
+            <div class="form-message" id="relatarMessage" role="status"></div>
+          </form>
+        </section>
+      </main>
+
+      <footer class="page-footer">
+        <p>
+          © 2026 GM Desporto — Área de Professores
+        </p>
+      </footer>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="appShell.js"></script>
+    <script src="professores.js"></script>
+  </body>
+</html>
+

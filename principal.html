@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GM Desporto — Admin | Inventário</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <header class="top-header">
+        <div class="top-left">
+          <a href="index.html" data-route="login" class="btn-back-top">← Voltar</a>
+          <div class="brand-main">
+            <div class="brand-text">
+              <span class="brand-title">GM Desporto</span>
+              <span class="brand-subtitle">Administração do inventário desportivo</span>
+            </div>
+          </div>
+        </div>
+        <div class="top-right">
+          <button id="btnMenuToggle" class="btn-back-top" type="button">
+            ☰ Menu
+          </button>
+          <div class="brand-school">
+            <img
+              src="imagens/logogm.png"
+              alt="Agrupamento de Escolas Dr. Ginestal Machado"
+              class="logo-school"
+            />
+          </div>
+        </div>
+      </header>
+
+      <nav class="main-menu" id="mainMenu">
+        <ul>
+          <li>
+            <a href="#dashboard" data-section="dashboard" class="menu-link"
+              >Painel Admin</a
+            >
+          </li>
+          <li>
+            <a href="#cadastro" data-section="cadastro" class="menu-link"
+              >Adicionar equipamento</a
+            >
+          </li>
+          <li>
+            <a href="#inventario" data-section="inventario" class="menu-link"
+              >Inventário</a
+            >
+          </li>
+          <li>
+            <a href="#historico" data-section="historico" class="menu-link"
+              >Histórico</a
+            >
+          </li>
+          <li>
+            <a href="membros.html" data-route="adminMembers" class="menu-link">Gestão de membros</a>
+          </li>
+          <li>
+            <a href="locais.html" data-route="adminLocations" class="menu-link">Locais</a>
+          </li>
+          <li>
+            <a href="relatados.html" data-route="adminUsage" class="menu-link">Listagem de uso</a>
+          </li>
+          <li>
+            <a href="relatos.html" data-route="adminReports" class="menu-link">Ocorrências</a>
+          </li>
+        </ul>
+      </nav>
+
+      <main class="content content-main">
+        <section class="card card-wide" id="dashboard">
+          <div class="card-header card-header-left">
+            <h1 class="card-title">Dashboard de Equipamentos</h1>
+            <p class="card-subtitle">
+              Controlo total do inventário desportivo.
+            </p>
+          </div>
+
+          <div class="dashboard">
+            <div class="dashboard-card">
+              <span class="dashboard-label">Total de equipamentos</span>
+              <span class="dashboard-value" id="totalEquipamentos">0</span>
+            </div>
+            <div class="dashboard-card">
+              <span class="dashboard-label">Disponíveis</span>
+              <span class="dashboard-value" id="totalDisponiveis">0</span>
+            </div>
+            <div class="dashboard-card">
+              <span class="dashboard-label">Manutenção</span>
+              <span class="dashboard-value" id="totalManutencao">0</span>
+            </div>
+            <div class="dashboard-card dashboard-card-full">
+              <div class="dashboard-dual" role="group" aria-label="Notificações pendentes">
+                <button
+                  type="button"
+                  class="dashboard-dual-sector sector-solicitacoes"
+                  id="btnDashSolicitacoes"
+                >
+                  <span class="dashboard-dual-sector-title">Solicitações</span>
+                  <span
+                    class="dash-badge-dot dash-badge-dot-red"
+                    id="dashBadgeSolicitacoes"
+                    style="display: none"
+                  ></span>
+                </button>
+                <button
+                  type="button"
+                  class="dashboard-dual-sector sector-relatos"
+                  id="btnDashRelatos"
+                >
+                  <span class="dashboard-dual-sector-title">Relatos</span>
+                  <span
+                    class="dash-badge-dot dash-badge-dot-blue"
+                    id="dashBadgeRelatos"
+                    style="display: none"
+                  ></span>
+                </button>
+                <button
+                  type="button"
+                  class="dashboard-dual-sector sector-requisicoes"
+                  id="btnDashRequisicoes"
+                >
+                  <span class="dashboard-dual-sector-title">Listagem de uso</span>
+                  <span
+                    class="dash-badge-dot dash-badge-dot-red"
+                    id="dashBadgeRequisicoes"
+                    style="display: none"
+                  ></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card card-wide" id="cadastro">
+          <div class="card-header card-header-left">
+            <h2 class="card-title card-title-small" id="cadastroTitle">
+              Adicionar equipamento
+            </h2>
+            <p class="card-subtitle" id="cadastroSubtitle">
+              Preencha o formulário para registar novo material no inventário.
+            </p>
+          </div>
+
+          <form class="equip-form" id="equipForm" novalidate>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="edfDe">EDF/DE *</label>
+                <select id="edfDe" name="edfDe" required>
+                  <option value="">Selecione...</option>
+                  <option value="EDF">EDF</option>
+                  <option value="DE">DE</option>
+                </select>
+                <small class="input-error" data-error-for="edfDe"></small>
+              </div>
+
+              <div class="form-group">
+                <label for="nomeEquipamento">Descrição (Nome) *</label>
+                <input
+                  type="text"
+                  id="nomeEquipamento"
+                  name="nomeEquipamento"
+                  placeholder="Ex.: Bola de Futebol"
+                  required
+                />
+                <small class="input-error" data-error-for="nomeEquipamento"></small>
+              </div>
+
+              <div class="form-group">
+                <label for="quantidade">Quantidade total *</label>
+                <input
+                  type="number"
+                  id="quantidade"
+                  name="quantidade"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="Ex.: 10"
+                  required
+                />
+                <small class="input-error" data-error-for="quantidade"></small>
+              </div>
+
+              <div class="form-group">
+                <label for="stock">Stock disponível *</label>
+                <input
+                  type="number"
+                  id="stock"
+                  name="stock"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="Ex.: 10"
+                  required
+                />
+                <small class="input-error" data-error-for="stock"></small>
+              </div>
+
+              <div class="form-group">
+                <label for="localizacao">Localização *</label>
+                <select id="localizacao" name="localizacao" required>
+                  <option value="">Selecione...</option>
+                  <option value="Arr1">Arr1 - Arrecadão 1</option>
+                  <option value="Arr2">Arr2 - Arrecadação 2</option>
+                  <option value="Arr1 Cx">Arr1 Cx - Arrecadação 1 (Caixa)</option>
+                  <option value="Arm2">Arm2 - Armazém 2</option>
+                  <option value="Arm3">Arm3 - Armazém 3</option>
+                  <option value="Arm5">Arm5 - Armazém 5</option>
+                  <option value="Arm6">Arm6 - Armazém 6</option>
+                  <option value="C3X3">C3X3 - Campo 3x3</option>
+                  <option value="CAnd">CAnd - Campo de Andebol</option>
+                  <option value="Ext">Ext - Exterior</option>
+                  <option value="Sala CF">Sala CF - Sala de Condição Física</option>
+                  <option value="WC">WC</option>
+                  <option value="G1">G1 - Ginásio 1</option>
+                  <option value="G2">G2 - Ginásio 2</option>
+                  <option value="Gabinete">Gabinete</option>
+                </select>
+                <small class="input-error" data-error-for="localizacao"></small>
+              </div>
+
+              <div class="form-group">
+                <label for="estadoBom">Estado Bom (opcional)</label>
+                <input
+                  type="number"
+                  id="estadoBom"
+                  name="estadoBom"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="Ex.: 10"
+                />
+                <small class="input-error" data-error-for="estadoBom"></small>
+              </div>
+
+              <div class="form-group">
+                <label for="estadoRazoavel">Estado Razoável (opcional)</label>
+                <input
+                  type="number"
+                  id="estadoRazoavel"
+                  name="estadoRazoavel"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="Ex.: 5"
+                />
+                <small class="input-error" data-error-for="estadoRazoavel"></small>
+              </div>
+
+              <div class="form-group">
+                <label for="estadoMau">Estado Mau (opcional)</label>
+                <input
+                  type="number"
+                  id="estadoMau"
+                  name="estadoMau"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="Ex.: 2"
+                />
+                <small class="input-error" data-error-for="estadoMau"></small>
+              </div>
+
+              <div class="form-group">
+                <label for="estadoAbate">Estado Abate (opcional)</label>
+                <input
+                  type="number"
+                  id="estadoAbate"
+                  name="estadoAbate"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="Ex.: 1"
+                />
+                <small class="input-error" data-error-for="estadoAbate"></small>
+              </div>
+
+              <div class="form-group">
+                <label for="empresaData">Empresa / Data</label>
+                <input
+                  type="text"
+                  id="empresaData"
+                  name="empresaData"
+                  placeholder="Ex.: Adidas / 11-2023"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="observacoes">Observações</label>
+                <textarea
+                  id="observacoes"
+                  name="observacoes"
+                  rows="3"
+                  placeholder="Notas adicionais sobre o equipamento..."
+                ></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="outrasObservacoes">Outras observações</label>
+                <textarea
+                  id="outrasObservacoes"
+                  name="outrasObservacoes"
+                  rows="3"
+                  placeholder="Observações adicionais..."
+                ></textarea>
+              </div>
+              
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Guardar equipamento</button>
+              <button type="button" class="btn-secondary" id="btnNovo">
+                Limpar
+              </button>
+              <button type="button" class="btn-ghost" id="btnInventario">
+                Voltar ao inventário
+              </button>
+            </div>
+
+            <div class="form-message" id="formMessage" role="status"></div>
+          </form>
+        </section>
+
+        <section class="card card-wide" id="inventario">
+          <div class="card-header card-header-left">
+            <h2 class="card-title card-title-small">Inventário de equipamentos</h2>
+            <p class="card-subtitle">
+              Lista de todos os equipamentos registados no sistema.
+            </p>
+          </div>
+
+          <!-- Pesquisa no Inventário -->
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="pesquisaInventario">Pesquisar inventário:</label>
+            <input
+              id="pesquisaInventario"
+              name="pesquisaInventario"
+              type="text"
+              placeholder="Pesquisar por descrição, local, observação..."
+            />
+          </div>
+
+          <!-- Filtro por Local -->
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="filtroLocal">Filtrar por Local:</label>
+            <select id="filtroLocal" name="filtroLocal">
+              <option value="todos">Todos os locais</option>
+              <!-- Opções serão carregadas dinamicamente -->
+            </select>
+          </div>
+
+          <div class="inventory-wrapper">
+            <table class="inventory-table">
+              <thead>
+                <tr>
+                  <th>EDF/DE</th>
+                  <th>Descrição</th>
+                  <th>Empresa / Data</th>
+                  <th>Total</th>
+                  <th>Disponível</th>
+                  <th>Bom</th>
+                  <th>Razoável</th>
+                  <th>Mau</th>
+                  <th>Abate</th>
+                  <th>Localização</th>
+                  <th>Observação</th>
+                  <th>Outras observações</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="inventarioBody">
+                <tr class="inventory-empty-row">
+                  <td colspan="13">Ainda não existem equipamentos registados.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="form-message" id="inventarioMessage" role="status"></div>
+        </section>
+
+        <section class="card card-wide" id="historico" style="display:none;">
+          <div class="card-header card-header-left">
+            <h2 class="card-title card-title-small">Histórico de ações</h2>
+            <p class="card-subtitle">
+              Acompanhe os equipamentos que foram adicionados ou apagados.
+            </p>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="pesquisaHistorico">Pesquisar histórico:</label>
+            <input
+              id="pesquisaHistorico"
+              name="pesquisaHistorico"
+              type="text"
+              placeholder="Pesquisar por equipamento ou ação..."
+            />
+          </div>
+
+          <div class="inventory-wrapper">
+            <table class="inventory-table">
+              <thead>
+                <tr>
+                  <th>Data / Hora</th>
+                  <th>Equipamento</th>
+                  <th>Ação</th>
+                  <th>Detalhes</th>
+                </tr>
+              </thead>
+              <tbody id="historicoBody">
+                <tr class="inventory-empty-row">
+                  <td colspan="4">Ainda não há registos de histórico.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      <footer class="page-footer">
+        <p>
+          © 2026 GM Desporto — Gestão de Equipamentos Desportivos
+        </p>
+      </footer>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="appShell.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
+

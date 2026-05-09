@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GM Desporto — Professor | Locais</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="prof-page">
+    <div class="page-wrapper">
+      <header class="top-header">
+        <div class="top-left">
+          <a href="professores.html" data-route="profReports" class="btn-back-top">← Voltar</a>
+          <div class="brand-main">
+            <div class="brand-text">
+              <span class="brand-title">GM Desporto</span>
+              <span class="brand-subtitle">Área de Professores</span>
+            </div>
+          </div>
+        </div>
+        <div class="top-right">
+          <button id="btnMenuToggleProf" class="btn-back-top" type="button">
+            ☰ Menu
+          </button>
+          <div class="brand-school">
+            <img
+              src="imagens/logogm.png"
+              alt="Agrupamento de Escolas Dr. Ginestal Machado"
+              class="logo-school"
+            />
+          </div>
+        </div>
+      </header>
+
+      <nav class="main-menu main-menu-prof" id="mainMenuProf">
+        <ul>
+          <li>
+            <a href="professores.html" data-route="profReports" class="menu-link">Ocorrências</a>
+          </li>
+          <li>
+            <a href="professores_relatados.html" data-route="profUsage" class="menu-link">Minha listagem</a>
+          </li>
+          <li>
+            <a href="professores_inventario.html" data-route="profInventory" class="menu-link">Inventário (consulta)</a>
+          </li>
+          <li>
+            <a href="professores_locais.html" data-route="profLocations" class="menu-link">Locais</a>
+          </li>
+        </ul>
+      </nav>
+
+      <main class="content content-main">
+        <section class="card card-wide" id="locaisSection">
+          <div class="card-header card-header-left">
+            <h2 class="card-title card-title-small">Locais</h2>
+            <p class="card-subtitle">
+              Consulte os locais disponíveis da escola.
+            </p>
+          </div>
+
+          <!-- Tabela de Locais (apenas visualização) -->
+          <div class="inventory-wrapper">
+            <table class="inventory-table locais-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Descrição</th>
+                  <th>Última alteração</th>
+                </tr>
+              </thead>
+              <tbody id="locaisTableBody">
+                <tr class="inventory-empty-row">
+                  <td colspan="3">Nenhum local registado.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      <footer class="page-footer">
+        <p>
+          © 2026 GM Desporto — Área de Professores
+        </p>
+      </footer>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="appShell.js"></script>
+    <script src="professores_locais.js"></script>
+  </body>
+</html>

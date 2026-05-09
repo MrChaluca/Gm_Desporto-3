@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GM Desporto — Admin | Locais</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="admin-page">
+    <div class="page-wrapper">
+      <header class="top-header">
+        <div class="top-left">
+          <a href="principal.html" data-route="adminInventory" class="btn-back-top">← Voltar</a>
+          <div class="brand-main">
+            <div class="brand-text">
+              <span class="brand-title">GM Desporto</span>
+              <span class="brand-subtitle">Administração</span>
+            </div>
+          </div>
+        </div>
+        <div class="top-right">
+          <button id="btnMenuToggleAdmin" class="btn-back-top" type="button">
+            ☰ Menu
+          </button>
+          <div class="brand-school">
+            <img
+              src="imagens/logogm.png"
+              alt="Agrupamento de Escolas Dr. Ginestal Machado"
+              class="logo-school"
+            />
+          </div>
+        </div>
+      </header>
+
+      <nav class="main-menu main-menu-admin" id="mainMenuAdmin">
+        <ul>
+          <li>
+            <a href="principal.html" data-route="adminInventory" class="menu-link">Painel Admin</a>
+          </li>
+          <li>
+            <a href="locais.html" data-route="adminLocations" class="menu-link">Locais</a>
+          </li>
+          <li>
+            <a href="professores.html" data-route="profReports" class="menu-link">Área Professor</a>
+          </li>
+        </ul>
+      </nav>
+
+      <main class="content content-main">
+        <section class="card card-wide" id="locaisSection">
+          <div class="card-header card-header-left">
+            <h2 class="card-title card-title-small">Gerenciar Locais</h2>
+            <p class="card-subtitle">
+              Adicione, edite ou remova locais da base de dados.
+            </p>
+          </div>
+
+          <!-- Formulário de Adicionar/Editar -->
+          <form id="locaisForm" class="form-group">
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="localNome">Nome do Local *</label>
+                <input
+                  type="text"
+                  id="localNome"
+                  placeholder="Ex: Arr1, G1, G2"
+                  required
+                />
+                <span class="input-error" id="localNomeError"></span>
+              </div>
+
+              <div class="form-field">
+                <label for="localDescricao">Descrição</label>
+                <input
+                  type="text"
+                  id="localDescricao"
+                  placeholder="Ex: Armazém 1, Ginásio 1"
+                />
+                <span class="input-error" id="localDescricaoError"></span>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" id="btnSubmitLocal">
+                Adicionar Local
+              </button>
+              <button type="reset" class="btn-secondary" id="btnResetLocal">
+                Limpar
+              </button>
+            </div>
+            <span class="input-error" id="locaisFormError"></span>
+          </form>
+
+          <!-- Tabela de Locais -->
+          <div class="inventory-wrapper">
+            <table class="inventory-table locais-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Descrição</th>
+                  <th>Última alteração</th>
+                </tr>
+              </thead>
+              <tbody id="locaisTableBody">
+                <tr class="inventory-empty-row">
+                  <td colspan="3">Nenhum local registado.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      <footer class="page-footer">
+        <p>
+          © 2026 GM Desporto — Administração
+        </p>
+      </footer>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="appShell.js"></script>
+    <script src="locais.js"></script>
+  </body>
+</html>
