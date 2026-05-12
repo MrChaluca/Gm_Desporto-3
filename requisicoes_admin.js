@@ -140,19 +140,24 @@ function renderizarTabela(requisicoes, equipNomeMap, professorEmail) {
     const tr = document.createElement("tr");
 
     const tdEq = document.createElement("td");
+    tdEq.dataset.label = "Equipamento";
     tdEq.textContent = equipNomeMap[String(r.equipamento_id)] || "—";
 
     const tdTempo = document.createElement("td");
+    tdTempo.dataset.label = "Tempo";
     const parsed = parseTempoEDescricao(r.descricao);
     tdTempo.textContent = parsed.tempo || "—";
 
     const tdQtd = document.createElement("td");
+    tdQtd.dataset.label = "Qtd.";
     tdQtd.textContent = String(r.quantidade);
 
     const tdDesc = document.createElement("td");
+    tdDesc.dataset.label = "Descrição";
     tdDesc.textContent = parsed.descricao || "—";
 
     const tdStatus = document.createElement("td");
+    tdStatus.dataset.label = "Estado";
     tdStatus.innerHTML = leituraBadge(r.lido);
 
     tr.appendChild(tdEq);
@@ -196,7 +201,7 @@ function renderizarListaProfessores(grupos, professorAtivo) {
 
 document.addEventListener("DOMContentLoaded", async () => {
   window.GMApp?.wireRouteLinks();
-  window.GMApp?.setupMenuToggle("btnMenuToggleRelatados", "mainMenu");
+  window.GMApp?.setupMenuToggle("btnMenuToggle", "mainMenu");
 
   if (!window.GMApp?.hasAccess("admin")) {
     window.GMApp?.goTo("profReports");

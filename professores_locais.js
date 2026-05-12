@@ -77,9 +77,9 @@ function renderizarLocais() {
   tbody.innerHTML = locaisCache
     .map(local => `
       <tr class="inventory-row">
-        <td>${local.nome || '-'}</td>
-        <td>${local.descricao || '-'}</td>
-        <td>
+        <td data-label="Nome">${local.nome || '-'}</td>
+        <td data-label="Descrição">${local.descricao || '-'}</td>
+        <td data-label="Última alteração">
           <span
             class="locais-date-badge"
             data-updated-at="${local.updated_at || local.created_at || ''}"

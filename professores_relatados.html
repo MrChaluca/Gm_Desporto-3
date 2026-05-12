@@ -2,9 +2,12 @@
 <html lang="pt">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GM Desporto — Professor | Minha Listagem</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=2" />
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
@@ -38,17 +41,10 @@
 
       <nav class="main-menu main-menu-prof" id="mainMenuProf">
         <ul>
-          <li>
-            <a href="professores.html" data-route="profReports" class="menu-link">Ocorrências</a>
-          </li>
-          <li>
-            <a href="professores_relatados.html" data-route="profUsage" class="menu-link">Minha listagem</a>
-          </li>
-          <li>
-            <a href="professores_inventario.html" data-route="profInventory" class="menu-link"
-              >Inventário (consulta)</a
-            >
-          </li>
+          <li><a href="professores.html" data-route="profReports" class="menu-link">Ocorrências</a></li>
+          <li><a href="professores_relatados.html" data-route="profUsage" class="menu-link">Minha listagem</a></li>
+          <li><a href="professores_inventario.html" data-route="profInventory" class="menu-link">Inventário (consulta)</a></li>
+          <li><a href="professores_locais.html" data-route="profLocations" class="menu-link">Locais</a></li>
         </ul>
       </nav>
 
@@ -90,9 +86,11 @@
               <form class="equip-form" id="reqForm" novalidate>
                 <input type="hidden" id="reqEditingId" name="reqEditingId" />
                 <div class="form-grid">
-                  <div class="form-group">
-                    <label for="reqEquipamento">Equipamento *</label>
-                    <select id="reqEquipamento" name="reqEquipamento" required></select>
+                  <div class="form-group" style="position: relative;">
+                    <label for="reqPesquisa">Equipamento *</label>
+                    <input type="text" id="reqPesquisa" placeholder="Pesquise o equipamento..." autocomplete="off" required>
+                    <input type="hidden" id="reqEquipamento" name="reqEquipamento" required>
+                    <div id="reqAutocomplete" class="autocomplete-list hidden"></div>
                   </div>
 
                   <div class="form-group">
@@ -163,7 +161,7 @@
                       id="reqDescricao"
                       name="reqDescricao"
                       rows="3"
-                      placeholder="Ex.: Turma do 7ºA, jogo de treino..."
+                      placeholder="Ex.: Turma da 12ªP, jogo de treino..."
                     ></textarea>
                   </div>
                 </div>
@@ -216,6 +214,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabaseClient.js"></script>
     <script src="appShell.js"></script>
-    <script src="professores_requisicoes.js"></script>
+    <script src="professores_listagem.js?v=2"></script>
+      <script src="customSelect.js?v=1"></script>
   </body>
 </html>

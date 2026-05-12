@@ -73,9 +73,9 @@ async function carregarMembros() {
   membrosLista.forEach((m) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${m.nome || ""}</td>
-      <td>${m.email || ""}</td>
-      <td>${roleLabel(m.role)}</td>
+      <td data-label="Nome">${m.nome || ""}</td>
+      <td data-label="Email">${m.email || ""}</td>
+      <td data-label="Cargo">${roleLabel(m.role)}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -115,10 +115,10 @@ async function carregarSolicitacoes() {
   data.forEach((s) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${s.nome || ""}</td>
-      <td>${s.email || ""}</td>
-      <td>${roleLabel(s.role)}</td>
-      <td>
+      <td data-label="Nome">${s.nome || ""}</td>
+      <td data-label="Email">${s.email || ""}</td>
+      <td data-label="Cargo">${roleLabel(s.role)}</td>
+      <td data-label="Ações">
         <button type="button" data-action="accept" data-id="${s.id}">Aceitar</button>
         <button type="button" class="inventory-btn-delete" data-action="reject" data-id="${s.id}">Rejeitar</button>
       </td>
@@ -196,7 +196,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  window.GMApp?.setupMenuToggle("btnMenuToggleMembros", "mainMenu");
+  window.GMApp?.setupMenuToggle("btnMenuToggle", "mainMenu");
 
   const tabM = document.getElementById("tabMembros");
   const tabS = document.getElementById("tabSolicitacoes");

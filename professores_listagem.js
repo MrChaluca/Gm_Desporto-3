@@ -19,26 +19,81 @@ function getEmailAtual() {
 }
 
 function renderizarEquipamentosSelect(equipamentos) {
-  const sel = document.getElementById("reqEquipamento");
-  if (!sel) return;
-  sel.innerHTML = '<option value="">Selecione um equipamento...</option>';
-  equipamentos.forEach((e) => {
-    const opt = document.createElement("option");
-    opt.value = String(e.id);
-    opt.textContent = e.nome;
-    sel.appendChild(opt);
+  const reqPesquisa = document.getElementById("reqPesquisa");
+  const reqEquipamento = document.getElementById("reqEquipamento");
+  const reqAutocomplete = document.getElementById("reqAutocomplete");
+  if (!reqPesquisa || !reqAutocomplete) return;
+
+  function renderizarAutocomplete(termo = "") {
+    reqAutocomplete.innerHTML = "";
+    if (!equipamentos.length) {
+      reqAutocomplete.innerHTML = '<div class="autocomplete-item" style="color:#666;">A carregar...</div>';
+      reqAutocomplete.classList.remove("hidden");
+      return;
+    }
+
+    const termoBaixo = termo.toLowerCase().trim();
+    let filtrados = equipamentos;
+    if (termoBaixo) {
+      filtrados = equipamentos.filter(eq => String(eq.nome || "").toLowerCase().includes(termoBaixo));
+    }
+
+    if (filtrados.length === 0) {
+      reqAutocomplete.innerHTML = '<div class="autocomplete-item" style="color:#666;">Nenhum equipamento encontrado.</div>';
+      reqAutocomplete.classList.remove("hidden");
+      return;
+    }
+
+    filtrados.slice(0, 50).forEach(eq => {
+      const div = document.createElement("div");
+      div.className = "autocomplete-item";
+      div.textContent = `${eq.nome}`;
+      div.addEventListener("click", () => {
+        reqPesquisa.value = div.textContent;
+        reqPesquisa.style.color = "#8b0000";
+        reqPesquisa.style.fontWeight = "600";
+        if (reqEquipamento) {
+          reqEquipamento.value = eq.id;
+          reqEquipamento.dispatchEvent(new Event("change"));
+        }
+        reqAutocomplete.classList.add("hidden");
+      });
+      reqAutocomplete.appendChild(div);
+    });
+    reqAutocomplete.classList.remove("hidden");
+  }
+
+  reqPesquisa.addEventListener("input", (e) => {
+    reqPesquisa.style.color = "";
+    reqPesquisa.style.fontWeight = "";
+    if (reqEquipamento) reqEquipamento.value = "";
+    renderizarAutocomplete(e.target.value);
+  });
+  reqPesquisa.addEventListener("focus", () => {
+    renderizarAutocomplete(reqPesquisa.value);
+  });
+  document.addEventListener("click", (e) => {
+    if (!reqPesquisa.contains(e.target) && !reqAutocomplete.contains(e.target)) {
+      reqAutocomplete.classList.add("hidden");
+    }
   });
 }
 
 function resetForm() {
   const form = document.getElementById("reqForm");
   const idInput = document.getElementById("reqEditingId");
+  const reqPesquisa = document.getElementById("reqPesquisa");
   if (idInput) idInput.value = "";
+  if (reqPesquisa) {
+    reqPesquisa.value = "";
+    reqPesquisa.style.color = "";
+    reqPesquisa.style.fontWeight = "";
+  }
   if (!form) return;
   form.reset();
 }
 
-function preencherForm(editItem) {
+function preencherForm(editItem, equipNomeMap) {
   const idInput = document.getElementById("reqEditingId");
   if (idInput) idInput.value = String(editItem.id);
   const form = document.getElementById("reqForm");
@@ -54,6 +109,7 @@ function preencherForm(editItem) {
   }
 
   const eqSel = document.getElementById("reqEquipamento");
+  const reqPesquisa = document.getElementById("reqPesquisa");
   const qtd = document.getElementById("reqQuantidade");
   const duracaoInput = document.getElementById("reqDuracaoMin");
   const duracaoOutroInput = document.getElementById("reqDuracaoMinOutro");
@@ -61,6 +117,9 @@ function preencherForm(editItem) {
   const parsed = parseDescricaoMetadata(editItem.descricao);
 
   if (eqSel) eqSel.value = String(editItem.equipamento_id);
+  if (reqPesquisa && equipNomeMap) {
+    reqPesquisa.value = equipNomeMap[String(editItem.equipamento_id)] || "";
+  }
   if (qtd) qtd.value = String(editItem.quantidade);
   if (duracaoInput) duracaoInput.value = String(parsed.duracaoMin);
   setTempoOpcaoUi(parsed.duracaoMin);
@@ -228,37 +287,52 @@ function renderizarTabela(requisicoes, equipNomeMap) {
     const st = String(r.status || "pendente").toLowerCase().trim();
 
     const tdData = document.createElement("td");
+    tdData.dataset.label = "Data e hora";
     tdData.textContent = dh ? new Date(dh).toLocaleString("pt-PT") : "—";
 
     const tdEq = document.createElement("td");
+    tdEq.dataset.label = "Equipamento";
     tdEq.textContent = equipNomeMap[String(r.equipamento_id)] || "—";
 
     const tdQtd = document.createElement("td");
+    tdQtd.dataset.label = "Qtd.";
     tdQtd.textContent = String(r.quantidade);
 
     const parsed = parseDescricaoMetadata(r.descricao);
     const tdTempo = document.createElement("td");
+    tdTempo.dataset.label = "Tempo";
     tdTempo.textContent = `${Number(parsed.duracaoMin)}min`;
 
     const tdDesc = document.createElement("td");
+    tdDesc.dataset.label = "Descrição";
     tdDesc.textContent = parsed.descricao || "—";
 
     const tdStatus = document.createElement("td");
+    tdStatus.dataset.label = "Estado";
     tdStatus.innerHTML = leituraBadge(r.lido);
 
     const tdAcao = document.createElement("td");
+    tdAcao.dataset.label = "Ações";
 
     if (st === "pendente" || st === "listado") {
       const btnEdit = document.createElement("button");
       btnEdit.type = "button";
-      btnEdit.className = "inventory-btn-edit";
-      btnEdit.textContent = "✏️";
+      btnEdit.className = "btn-ghost small";
+      btnEdit.style.marginRight = "4px";
+      btnEdit.textContent = "Editar";
       btnEdit.dataset.action = "edit";
       btnEdit.dataset.id = String(r.id);
 
       const btnDel = document.createElement("button");
       btnDel.type = "button";
       btnDel.className = "inventory-btn-delete";
+      btnDel.style.fontSize = "0.8rem";
+      btnDel.style.padding = "4px 8px";
+      btnDel.style.borderRadius = "999px";
+      btnDel.style.cursor = "pointer";
+      btnDel.style.border = "1px solid #c0212a";
+      btnDel.style.background = "transparent";
+      btnDel.style.color = "#c0212a";
       btnDel.textContent = "Apagar";
       btnDel.dataset.action = "delete_item";
       btnDel.dataset.id = String(r.id);
@@ -269,6 +343,13 @@ function renderizarTabela(requisicoes, equipNomeMap) {
       const btnDel = document.createElement("button");
       btnDel.type = "button";
       btnDel.className = "inventory-btn-delete";
+      btnDel.style.fontSize = "0.8rem";
+      btnDel.style.padding = "4px 8px";
+      btnDel.style.borderRadius = "999px";
+      btnDel.style.cursor = "pointer";
+      btnDel.style.border = "1px solid #c0212a";
+      btnDel.style.background = "transparent";
+      btnDel.style.color = "#c0212a";
       btnDel.textContent = "Apagar";
       btnDel.dataset.action = "delete_item";
       btnDel.dataset.id = String(r.id);
@@ -367,7 +448,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderizarTabela(requisicoes, equipNomeMap);
   } catch (e) {
     console.error(e);
-    mostrarToast("Erro ao carregar as suas requisições.", "error");
+    mostrarToast("Erro ao carregar as suas listagens.", "error");
   }
 
   setActiveTab("requisicoes");
@@ -437,7 +518,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           )
         )
           return;
-        preencherForm(item);
+        preencherForm(item, equipNomeMap);
         if (submitBtn) submitBtn.textContent = "Guardar alterações";
         setActiveTab("nova");
         window.scrollTo(0, 0);

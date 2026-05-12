@@ -2,6 +2,10 @@ let equipamentosCache = [];
 let localFiltroAtual = 'todos';
 let termoPesquisaAtual = '';
 
+// Paginação
+let currentPage = 1;
+const itemsPerPage = 10;
+
 async function carregarEquipamentosSupabase() {
   if (typeof supabaseClient === 'undefined') {
     console.error('Supabase client não disponível');
@@ -72,6 +76,7 @@ function filtrarEquipamentos(local = 'todos', termoPesquisa = '') {
     const outrasObs = String(eq.outras_observacao || '').toLowerCase();
     const empresaData = String(eq.empresa_data || '').toLowerCase();
     const edfDe = String(eq.edf_de || '').toLowerCase();
+    const escola = String(eq.escola || '').toLowerCase();
 
     return (
       descricao.includes(termo) ||
@@ -79,7 +84,8 @@ function filtrarEquipamentos(local = 'todos', termoPesquisa = '') {
       observacao.includes(termo) ||
       outrasObs.includes(termo) ||
       empresaData.includes(termo) ||
-      edfDe.includes(termo)
+      edfDe.includes(termo) ||
+      escola.includes(termo)
     );
   });
 }
@@ -99,7 +105,7 @@ function renderizarEquipamentos(local = 'todos', termoPesquisa = '') {
     const temPesquisa = String(termoPesquisa || '').trim().length > 0;
     tbody.innerHTML = `
       <tr class="inventory-empty-row">
-        <td colspan="12">${
+        <td colspan="13">${
           temPesquisa
             ? `Nenhum equipamento corresponde à pesquisa "${termoPesquisa}"${local !== 'todos' ? ` no local ${local}` : ''}.`
             : local === 'todos'
@@ -108,27 +114,75 @@ function renderizarEquipamentos(local = 'todos', termoPesquisa = '') {
         }</td>
       </tr>
     `;
+    renderPaginationControlsProf(0);
     return;
   }
 
-  tbody.innerHTML = equipamentos
+  // Paginação
+  const totalItems = equipamentos.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const itemsToShow = equipamentos.slice(startIndex, startIndex + itemsPerPage);
+
+  tbody.innerHTML = itemsToShow
     .map(eq => `
       <tr class="inventory-row">
-        <td>${eq.edf_de || '-'}</td>
-        <td>${eq.descricao || '-'}</td>
-        <td class="text-center">${eq.quantidade || 0}</td>
-        <td class="text-center">${eq.stock !== null ? eq.stock : 0}</td>
-        <td>${eq.empresa_data || '-'}</td>
-        <td>${eq.estado_bom ?? mapEstadoLegado(eq, 'Bom')}</td>
-        <td>${eq.estado_razoavel ?? mapEstadoLegado(eq, 'Razoável')}</td>
-        <td>${eq.estado_mau ?? mapEstadoLegado(eq, 'Mau')}</td>
-        <td>${eq.estado_abate ?? mapEstadoLegado(eq, 'Abate')}</td>
-        <td>${eq.local || '-'}</td>
-        <td>${eq.observacao || '-'}</td>
-        <td>${eq.outras_observacao || '-'}</td>
+        <td data-label="Escola">${eq.escola || 'GM'}</td>
+        <td data-label="EDF/DE">${eq.edf_de || '-'}</td>
+        <td data-label="Descrição">${eq.descricao || '-'}</td>
+        <td data-label="Quantidade" class="text-center">${eq.quantidade || 0}</td>
+        <td data-label="Stock" class="text-center">${eq.stock !== null ? eq.stock : 0}</td>
+        <td data-label="Empresa/Data">${eq.empresa_data || '-'}</td>
+        <td data-label="Bom">${eq.estado_bom ?? mapEstadoLegado(eq, 'Bom')}</td>
+        <td data-label="Razoável">${eq.estado_razoavel ?? mapEstadoLegado(eq, 'Razoável')}</td>
+        <td data-label="Mau">${eq.estado_mau ?? mapEstadoLegado(eq, 'Mau')}</td>
+        <td data-label="Abate">${eq.estado_abate ?? mapEstadoLegado(eq, 'Abate')}</td>
+        <td data-label="Local">${eq.local || '-'}</td>
+        <td data-label="Observação">${eq.observacao || '-'}</td>
+        <td data-label="Outras Observações">${eq.outras_observacao || '-'}</td>
       </tr>
     `)
     .join('');
+
+  renderPaginationControlsProf(totalItems);
+}
+
+function renderPaginationControlsProf(totalItems) {
+  const container = document.getElementById("paginationControls");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  if (totalPages <= 1) return;
+
+  const btnPrev = document.createElement("button");
+  btnPrev.className = "pagination-btn";
+  btnPrev.textContent = "Anterior";
+  btnPrev.disabled = currentPage === 1;
+  btnPrev.onclick = () => {
+    currentPage--;
+    renderizarEquipamentos(localFiltroAtual, termoPesquisaAtual);
+    document.getElementById("inventarioProf").scrollIntoView({ behavior: "smooth" });
+  };
+  container.appendChild(btnPrev);
+
+  const info = document.createElement("span");
+  info.className = "pagination-info";
+  info.textContent = `Página ${currentPage} de ${totalPages}`;
+  container.appendChild(info);
+
+  const btnNext = document.createElement("button");
+  btnNext.className = "pagination-btn";
+  btnNext.textContent = "Próxima";
+  btnNext.disabled = currentPage === totalPages;
+  btnNext.onclick = () => {
+    currentPage++;
+    renderizarEquipamentos(localFiltroAtual, termoPesquisaAtual);
+    document.getElementById("inventarioProf").scrollIntoView({ behavior: "smooth" });
+  };
+  container.appendChild(btnNext);
 }
 
 function mostrarToast(texto, tipo = 'success') {
@@ -203,6 +257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (filtroLocalProf) {
     filtroLocalProf.addEventListener('change', () => {
       localFiltroAtual = filtroLocalProf.value || 'todos';
+      currentPage = 1; // Reset para a primeira página ao filtrar
       renderizarEquipamentos(localFiltroAtual, termoPesquisaAtual);
     });
   }
@@ -210,6 +265,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (pesquisaInventarioProf) {
     pesquisaInventarioProf.addEventListener('input', () => {
       termoPesquisaAtual = pesquisaInventarioProf.value.trim();
+      currentPage = 1; // Reset para a primeira página ao pesquisar
       renderizarEquipamentos(localFiltroAtual, termoPesquisaAtual);
     });
   }

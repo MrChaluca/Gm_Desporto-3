@@ -1,15 +1,6 @@
 // Inventário em memória + localStorage
 const STORAGE_KEY = "gm_desporto_inventario";
 const HISTORY_KEY = "gm_desporto_historico";
-// Manutenção removida (mantemos o ficheiro compatível sem esta feature)
-const MAINT_KEY = "gm_desporto_manutencao_qtd_por_id";
-
-function carregarManutencaoMap() {
-  try {
-    const raw = localStorage.getItem(MAINT_KEY);
-    if (!raw) return {};
-    const data = JSON.parse(raw);
-    return data && typeof data === "object" ? data : {};
   } catch {
     return {};
   }
@@ -63,10 +54,10 @@ async function carregarEquipamentosSupabase() {
 
   return data.map((row) => ({
     id: row.id,
+    escola: row.escola || "GM",
     nome: row.descricao,
     quantidade: Number(row.quantidade || 0),
     stock: Number(row.stock || 0),
-    manutencaoQtd: 0,
     localizacao: row.local || "",
     marcaModelo: row.empresa_data || "",
     dataAquisicao: "", // not used
@@ -77,7 +68,6 @@ async function carregarEquipamentosSupabase() {
     estadoBom: row.estado_bom ?? null,
     estadoRazoavel: row.estado_razoavel ?? null,
     estadoMau: row.estado_mau ?? null,
-    estadoAbate: row.estado_abate ?? null,
     status: "disponivel",
   }));
 }
@@ -157,21 +147,8 @@ function normalizarInventario(lista) {
   let alterado = false;
   const out = lista.map((item) => {
     const novo = { ...item };
-    if (typeof novo.manutencaoQtd !== "number") {
-      novo.manutencaoQtd = novo.estado === "manutencao" ? Number(novo.quantidade) : 0;
-      alterado = true;
-    }
-    // Com manutenção parcial, mantemos o estado base como normal
     if (novo.estado !== "normal") {
       novo.estado = "normal";
-      alterado = true;
-    }
-    if (novo.manutencaoQtd < 0) {
-      novo.manutencaoQtd = 0;
-      alterado = true;
-    }
-    if (novo.manutencaoQtd > Number(novo.quantidade)) {
-      novo.manutencaoQtd = Number(novo.quantidade);
       alterado = true;
     }
     return novo;
@@ -187,12 +164,12 @@ function disponivelQtd(item) {
 
 function atualizarDashboard(lista) {
   const total = lista.reduce((acc, e) => acc + Number(e.quantidade || 0), 0);
-  const disponiveis = lista.reduce((acc, e) => acc + disponivelQtd(e), 0);
+  const abates = lista.reduce((acc, e) => acc + Number(e.estadoAbate || 0), 0);
 
   document.getElementById("totalEquipamentos").textContent = total;
-  document.getElementById("totalDisponiveis").textContent = disponiveis;
-  const elMan = document.getElementById("totalManutencao");
-  if (elMan) elMan.textContent = "0";
+  
+  const elAbates = document.getElementById("totalAbates");
+  if (elAbates) elAbates.textContent = abates;
 }
 
 
@@ -226,7 +203,6 @@ function formatarEstadoResumo(item) {
   if (item.estadoBom !== null && item.estadoBom !== undefined) partes.push(`Bom: ${item.estadoBom}`);
   if (item.estadoRazoavel !== null && item.estadoRazoavel !== undefined) partes.push(`Razoável: ${item.estadoRazoavel}`);
   if (item.estadoMau !== null && item.estadoMau !== undefined) partes.push(`Mau: ${item.estadoMau}`);
-  if (item.estadoAbate !== null && item.estadoAbate !== undefined) partes.push(`Abate: ${item.estadoAbate}`);
   if (partes.length) return partes.join(" | ");
   return item.estado || "-";
 }
@@ -277,7 +253,6 @@ function validarFormulario(form) {
     { key: "estadoBom", label: "Bom" },
     { key: "estadoRazoavel", label: "Razoável" },
     { key: "estadoMau", label: "Mau" },
-    { key: "estadoAbate", label: "Abate" },
   ];
   let somaEstados = 0;
   for (const st of estados) {
@@ -365,6 +340,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   let termoPesquisaHistorico = "";
   let editingId = null;
   let modalMode = "both";
+
+  // Paginação
+  let currentPage = 1;
+  const itemsPerPage = 10;
 
   function setDashBadge(badgeEl, count) {
     if (!badgeEl) return;
@@ -494,6 +473,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (filtroLocalSelect) {
     filtroLocalSelect.addEventListener("change", () => {
       filtroLocalAtual = filtroLocalSelect.value || "todos";
+      currentPage = 1; // Reset para a primeira página ao filtrar
       renderizarInventario(inventario, filtroLocalAtual, termoPesquisa);
     });
 
@@ -503,6 +483,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (pesquisaInventario) {
     pesquisaInventario.addEventListener("input", () => {
       termoPesquisa = pesquisaInventario.value.trim();
+      currentPage = 1; // Reset para a primeira página ao pesquisar
       renderizarInventario(inventario, filtroLocalAtual, termoPesquisa);
     });
   }
@@ -578,6 +559,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const observacoes = String(item.observacoes || "").toLowerCase();
         const outrasObservacoes = String(item.outrasObservacoes || "").toLowerCase();
         const marcaModelo = String(item.marcaModelo || "").toLowerCase();
+        const escola = String(item.escola || "").toLowerCase();
 
         return (
           edfDe.includes(termo) ||
@@ -585,7 +567,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           localizacao.includes(termo) ||
           observacoes.includes(termo) ||
           outrasObservacoes.includes(termo) ||
-          marcaModelo.includes(termo)
+          marcaModelo.includes(termo) ||
+          escola.includes(termo)
         );
       });
     }
@@ -604,26 +587,35 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       row.appendChild(cell);
       inventarioBody.appendChild(row);
+      renderPaginationControls(0);
       return;
     }
 
-    listaFiltrada.forEach((item) => {
+    // Paginação
+    const totalItems = listaFiltrada.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+    
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const itemsToShow = listaFiltrada.slice(startIndex, startIndex + itemsPerPage);
+
+    itemsToShow.forEach((item) => {
       const disp = disponivelQtd(item);
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td>${item.edfDe || "-"}</td>
-        <td>${item.nome}</td>
-        <td>${item.marcaModelo || ""}</td>
-        <td>${item.quantidade}</td>
-        <td>${disp}</td>
-        <td>${item.estadoBom ?? mapEstadoLegado(item, "Bom")}</td>
-        <td>${item.estadoRazoavel ?? mapEstadoLegado(item, "Razoável")}</td>
-        <td>${item.estadoMau ?? mapEstadoLegado(item, "Mau")}</td>
-        <td>${item.estadoAbate ?? mapEstadoLegado(item, "Abate")}</td>
-        <td>${item.localizacao}</td>
-        <td>${item.observacoes || "-"}</td>
-        <td>${item.outrasObservacoes || "-"}</td>
-        <td>
+        <td data-label="Escola">${item.escola || "GM"}</td>
+        <td data-label="EDF/DE">${item.edfDe || "-"}</td>
+        <td data-label="Descrição">${item.nome}</td>
+        <td data-label="Quantidade">${item.quantidade}</td>
+        <td data-label="Stock">${disp}</td>
+        <td data-label="Empresa / Data">${item.marcaModelo || ""}</td>
+        <td data-label="Bom">${item.estadoBom ?? mapEstadoLegado(item, "Bom")}</td>
+        <td data-label="Razoável">${item.estadoRazoavel ?? mapEstadoLegado(item, "Razoável")}</td>
+        <td data-label="Mau">${item.estadoMau ?? mapEstadoLegado(item, "Mau")}</td>
+        <td data-label="Localização">${item.localizacao}</td>
+        <td data-label="Observação">${item.observacoes || "-"}</td>
+        <td data-label="Outras observações">${item.outrasObservacoes || "-"}</td>
+        <td data-label="Ações">
           <button
             type="button"
             class="inventory-btn-edit"
@@ -644,6 +636,44 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
       inventarioBody.appendChild(row);
     });
+
+    renderPaginationControls(totalItems);
+  }
+
+  function renderPaginationControls(totalItems) {
+    const container = document.getElementById("paginationControls");
+    if (!container) return;
+    container.innerHTML = "";
+
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    if (totalPages <= 1) return;
+
+    const btnPrev = document.createElement("button");
+    btnPrev.className = "pagination-btn";
+    btnPrev.textContent = "Anterior";
+    btnPrev.disabled = currentPage === 1;
+    btnPrev.onclick = () => {
+      currentPage--;
+      renderizarInventario(inventario, filtroLocalAtual, termoPesquisa);
+      document.getElementById("inventario").scrollIntoView({ behavior: "smooth" });
+    };
+    container.appendChild(btnPrev);
+
+    const info = document.createElement("span");
+    info.className = "pagination-info";
+    info.textContent = `Página ${currentPage} de ${totalPages}`;
+    container.appendChild(info);
+
+    const btnNext = document.createElement("button");
+    btnNext.className = "pagination-btn";
+    btnNext.textContent = "Próxima";
+    btnNext.disabled = currentPage === totalPages;
+    btnNext.onclick = () => {
+      currentPage++;
+      renderizarInventario(inventario, filtroLocalAtual, termoPesquisa);
+      document.getElementById("inventario").scrollIntoView({ behavior: "smooth" });
+    };
+    container.appendChild(btnNext);
   }
 
   function renderizarHistorico(pesquisa = "") {
@@ -754,7 +784,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         estadoBom: parseOptionalQuantidadeForm(form.estadoBom.value),
         estadoRazoavel: parseOptionalQuantidadeForm(form.estadoRazoavel.value),
         estadoMau: parseOptionalQuantidadeForm(form.estadoMau.value),
-        estadoAbate: parseOptionalQuantidadeForm(form.estadoAbate.value),
         estado: "",
         outrasObservacoes: form.outrasObservacoes.value.trim(),
         status: "disponivel",
@@ -786,10 +815,6 @@ document.addEventListener("DOMContentLoaded", async () => {
               const idx = inventario.findIndex((item) => item.id === editingId);
               if (idx !== -1) {
                 const antes = inventario[idx];
-                dados.manutencaoQtd = Math.min(
-                  Number(antes.manutencaoQtd || 0),
-                  Number(dados.quantidade)
-                );
                 inventario[idx] = dados;
               }
               editingId = null;
@@ -939,7 +964,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         form.estadoBom.value = item.estadoBom ?? "";
         form.estadoRazoavel.value = item.estadoRazoavel ?? "";
         form.estadoMau.value = item.estadoMau ?? "";
-        form.estadoAbate.value = item.estadoAbate ?? "";
         form.empresaData.value = item.marcaModelo || "";
         form.observacoes.value = item.observacoes || "";
         form.outrasObservacoes.value = item.outrasObservacoes || "";

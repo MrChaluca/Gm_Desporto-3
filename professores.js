@@ -29,22 +29,15 @@ function carregarManutencaoMap() {
 }
 
 async function carregarManutencaoSupabaseMap() {
-  if (typeof supabaseClient === "undefined") return null;
-  const { data, error } = await supabaseClient
-    .from("manutencao")
-    .select("equipamento_id,quantidade");
-  if (error) throw error;
-  const map = {};
-  data.forEach((r) => {
-    map[r.equipamento_id] = Number(r.quantidade || 0);
-  });
-  return map;
+  // Tabela 'manutencao' nao existe no schema da BD.
+  // Retorna mapa vazio para nao quebrar o carregamento do inventario.
+  return {};
 }
 
 function disponivelQtd(item) {
   return Math.max(
     0,
-    Number(item.quantidade || 0) - Number(item.manutencaoQtd || 0)
+    Number(item.quantidade || 0)
   );
 }
 
@@ -94,7 +87,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const manutencaoProfBody = document.getElementById("manutencaoProfBody");
   const relatadosProfBody = document.getElementById("relatadosProfBody");
   const relatarForm = document.getElementById("relatarForm");
+  const relatarPesquisa = document.getElementById("relatarPesquisa");
   const relatarEquipamento = document.getElementById("relatarEquipamento");
+  const relatarAutocomplete = document.getElementById("relatarAutocomplete");
   const relatarQuantidade = document.getElementById("relatarQuantidade");
   const relatarTipo = document.getElementById("relatarTipo");
   const relatarDescricao = document.getElementById("relatarDescricao");
@@ -132,18 +127,18 @@ document.addEventListener("DOMContentLoaded", () => {
     inventario.forEach((item) => {
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td>${item.categoria || "-"}</td>
-        <td>${item.nome || "-"}</td>
-        <td>${item.quantidade}</td>
-        <td>${disponivelQtd(item)}</td>
-        <td>${item.marcaModelo || "-"}</td>
-        <td>${item.estadoBom ?? mapEstadoLegado(item, "Bom")}</td>
-        <td>${item.estadoRazoavel ?? mapEstadoLegado(item, "Razoável")}</td>
-        <td>${item.estadoMau ?? mapEstadoLegado(item, "Mau")}</td>
-        <td>${item.estadoAbate ?? mapEstadoLegado(item, "Abate")}</td>
-        <td>${item.localizacao || "-"}</td>
-        <td>${item.observacoes || "-"}</td>
-        <td>${item.outrasObservacoes || "-"}</td>
+        <td data-label="Categoria">${item.categoria || "-"}</td>
+        <td data-label="Nome">${item.nome || "-"}</td>
+        <td data-label="Quantidade">${item.quantidade}</td>
+        <td data-label="Disponível">${disponivelQtd(item)}</td>
+        <td data-label="Marca/Modelo">${item.marcaModelo || "-"}</td>
+        <td data-label="Bom">${item.estadoBom ?? mapEstadoLegado(item, "Bom")}</td>
+        <td data-label="Razoável">${item.estadoRazoavel ?? mapEstadoLegado(item, "Razoável")}</td>
+        <td data-label="Mau">${item.estadoMau ?? mapEstadoLegado(item, "Mau")}</td>
+        <td data-label="Abate">${item.estadoAbate ?? mapEstadoLegado(item, "Abate")}</td>
+        <td data-label="Localização">${item.localizacao || "-"}</td>
+        <td data-label="Observações">${item.observacoes || "-"}</td>
+        <td data-label="Outras Obs.">${item.outrasObservacoes || "-"}</td>
       `;
       inventarioProfBody.appendChild(row);
     });
@@ -152,31 +147,15 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderizarManutencaoProf() {
     if (!manutencaoProfBody) return;
     manutencaoProfBody.innerHTML = "";
-
-    const emManut = inventario.filter((it) => Number(it.manutencaoQtd || 0) > 0);
-
-    if (!emManut.length) {
-      const row = document.createElement("tr");
-      row.className = "inventory-empty-row";
-      const cell = document.createElement("td");
-      cell.colSpan = 5;
-      cell.textContent = "Não existem unidades em manutenção.";
-      row.appendChild(cell);
-      manutencaoProfBody.appendChild(row);
-      return;
-    }
-
-    emManut.forEach((item) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${item.nome}</td>
-        <td>${item.categoria}</td>
-        <td>${item.manutencaoQtd || 0}</td>
-        <td>${disponivelQtd(item)}</td>
-        <td>${item.localizacao}</td>
-      `;
-      manutencaoProfBody.appendChild(row);
-    });
+    
+    // Funcionalidade de manutenção foi removida
+    const row = document.createElement("tr");
+    row.className = "inventory-empty-row";
+    const cell = document.createElement("td");
+    cell.colSpan = 5;
+    cell.textContent = "A funcionalidade de manutenção foi descontinuada.";
+    row.appendChild(cell);
+    manutencaoProfBody.appendChild(row);
   }
 
   function renderizarRelatadosProfLocal() {
@@ -332,6 +311,13 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.textContent = "Remover";
       tdAcao.appendChild(btn);
 
+      tdData.dataset.label = "Data e hora";
+      tdNome.dataset.label = "Equipamento";
+      tdTipo.dataset.label = "Tipo";
+      tdQtd.dataset.label = "Qtd.";
+      tdDesc.dataset.label = "Descrição";
+      tdAcao.dataset.label = "Ações";
+
       row.appendChild(tdData);
       row.appendChild(tdNome);
       row.appendChild(tdTipo);
@@ -343,15 +329,65 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function preencherSelectEquipamentos() {
-    if (!relatarEquipamento) return;
-    relatarEquipamento.innerHTML =
-      '<option value="">Selecione um equipamento...</option>';
+    if (!relatarPesquisa || !relatarAutocomplete) return;
+    
+    function renderizarAutocomplete(termo = "") {
+      relatarAutocomplete.innerHTML = "";
+      
+      if (!inventario.length) {
+        relatarAutocomplete.innerHTML = '<div class="autocomplete-item" style="color:#666;">A carregar...</div>';
+        relatarAutocomplete.classList.remove("hidden");
+        return;
+      }
 
-    inventario.forEach((item) => {
-      const opt = document.createElement("option");
-      opt.value = String(item.id);
-      opt.textContent = `${item.nome} (${item.categoria})`;
-      relatarEquipamento.appendChild(opt);
+      const termoBaixo = termo.toLowerCase().trim();
+      let filtrados = inventario;
+
+      if (termoBaixo) {
+        filtrados = inventario.filter(eq => {
+          const texto = `${eq.nome || ""} (${eq.categoria || ''})`.toLowerCase();
+          return texto.includes(termoBaixo);
+        });
+      }
+
+      if (filtrados.length === 0) {
+        relatarAutocomplete.innerHTML = '<div class="autocomplete-item" style="color:#666;">Nenhum equipamento encontrado.</div>';
+        relatarAutocomplete.classList.remove("hidden");
+        return;
+      }
+
+      filtrados.slice(0, 50).forEach(eq => {
+        const div = document.createElement("div");
+        div.className = "autocomplete-item";
+        div.textContent = `${eq.categoria ? eq.categoria + ' - ' : ''}${eq.nome} (Stock: ${eq.quantidade})`;
+        div.addEventListener("click", () => {
+          relatarPesquisa.value = div.textContent;
+          relatarPesquisa.style.color = "#8b0000";
+          relatarPesquisa.style.fontWeight = "600";
+          relatarEquipamento.value = eq.id;
+          relatarAutocomplete.classList.add("hidden");
+        });
+        relatarAutocomplete.appendChild(div);
+      });
+
+      relatarAutocomplete.classList.remove("hidden");
+    }
+
+    relatarPesquisa.addEventListener("input", (e) => {
+      relatarPesquisa.style.color = "";
+      relatarPesquisa.style.fontWeight = "";
+      relatarEquipamento.value = ""; // Limpa a seleção
+      renderizarAutocomplete(e.target.value);
+    });
+
+    relatarPesquisa.addEventListener("focus", () => {
+      renderizarAutocomplete(relatarPesquisa.value);
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!relatarPesquisa.contains(e.target) && !relatarAutocomplete.contains(e.target)) {
+        relatarAutocomplete.classList.add("hidden");
+      }
     });
   }
 
@@ -494,6 +530,12 @@ document.addEventListener("DOMContentLoaded", () => {
       mostrarToast("Relatório enviado aos responsáveis.", "success");
 
       relatarForm.reset();
+      if (relatarPesquisa) {
+        relatarPesquisa.value = "";
+        relatarPesquisa.style.color = "";
+        relatarPesquisa.style.fontWeight = "";
+      }
+      if (relatarEquipamento) relatarEquipamento.value = "";
       limparErros();
 
       (async () => {
@@ -570,6 +612,12 @@ document.addEventListener("DOMContentLoaded", () => {
     relatarLimpar.addEventListener("click", () => {
       if (!relatarForm) return;
       relatarForm.reset();
+      if (relatarPesquisa) {
+        relatarPesquisa.value = "";
+        relatarPesquisa.style.color = "";
+        relatarPesquisa.style.fontWeight = "";
+      }
+      if (relatarEquipamento) relatarEquipamento.value = "";
       limparErros();
       if (relatarMessage) {
 

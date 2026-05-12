@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GM Desporto — Editar Perfil</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .perfil-card {
+        width: min(480px, 100%);
+        animation: fadeUp 0.35s ease-out;
+      }
+
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      .perfil-avatar {
+        width: 82px;
+        height: 82px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--wine-light), var(--wine-dark));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 auto 1rem;
+        box-shadow: 0 8px 24px rgba(123, 18, 36, 0.5);
+        user-select: none;
+        letter-spacing: 0;
+      }
+
+      .perfil-email-badge {
+        display: inline-block;
+        background: rgba(123, 18, 36, 0.08);
+        border: 1px solid rgba(123, 18, 36, 0.18);
+        border-radius: 999px;
+        padding: 4px 14px;
+        font-size: 0.82rem;
+        color: var(--wine-dark);
+        font-weight: 500;
+        margin-bottom: 1.6rem;
+      }
+
+      .perfil-section-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin: 1.4rem 0 0.7rem;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(0,0,0,0.07);
+      }
+
+      .perfil-form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .btn-danger {
+        margin-top: 8px;
+        border-radius: 999px;
+        padding: 11px 16px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        background: transparent;
+        color: #c0392b;
+        border: 1.5px solid rgba(192, 57, 43, 0.35);
+        cursor: pointer;
+        width: 100%;
+        transition: background-color 160ms ease-out, color 160ms ease-out, border-color 160ms ease-out;
+      }
+
+      .btn-danger:hover {
+        background: rgba(192, 57, 43, 0.07);
+        border-color: rgba(192, 57, 43, 0.6);
+      }
+
+      .password-wrapper {
+        position: relative;
+      }
+
+      .password-wrapper input {
+        padding-right: 44px !important;
+      }
+
+      .toggle-pass {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-muted);
+        font-size: 1rem;
+        padding: 0;
+        line-height: 1;
+      }
+
+      .toggle-pass:hover { color: var(--wine-dark); }
+
+      .link-mudar-senha {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--wine-light);
+        font-size: 0.88rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        padding: 6px 0;
+        transition: color 160ms ease-out;
+        margin-top: 4px;
+      }
+
+      .link-mudar-senha:hover {
+        color: var(--wine-dark);
+        text-decoration: underline;
+      }
+
+      .perfil-msg {
+        text-align: center;
+        font-size: 0.88rem;
+        min-height: 22px;
+        border-radius: 8px;
+        padding: 0 8px;
+      }
+
+      .perfil-msg.success { color: #1a7a4a; }
+      .perfil-msg.error   { color: #c0392b; }
+    </style>
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <header class="top-header">
+        <div class="top-left">
+          <a href="#" id="btnVoltar" class="btn-back-top">← Voltar</a>
+          <div class="brand-main">
+            <div class="brand-text">
+              <span class="brand-title">GM Desporto</span>
+              <span class="brand-subtitle">Editar Perfil</span>
+            </div>
+          </div>
+        </div>
+        <div class="brand-school">
+          <img
+            src="imagens/logogm.png"
+            alt="Agrupamento de Escolas Dr. Ginestal Machado"
+            class="logo-school"
+          />
+        </div>
+      </header>
+
+      <main class="content">
+        <div class="card perfil-card">
+
+          <!-- Avatar -->
+          <div class="perfil-avatar" id="perfilAvatar">?</div>
+
+          <div style="text-align:center;">
+            <div class="perfil-email-badge" id="perfilEmailBadge">—</div>
+          </div>
+
+          <!-- Dados pessoais -->
+          <p class="perfil-section-title">Dados pessoais</p>
+
+          <form class="perfil-form" id="perfilForm" novalidate>
+            <div class="form-group">
+              <label for="perfilNome">Nome de utilizador</label>
+              <input
+                type="text"
+                id="perfilNome"
+                name="perfilNome"
+                placeholder="O seu nome"
+                autocomplete="name"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="perfilEmail">Conta (email)</label>
+              <input
+                type="email"
+                id="perfilEmail"
+                name="perfilEmail"
+                placeholder="novo@email.pt"
+                autocomplete="email"
+              />
+            </div>
+
+            <!-- Segurança -->
+            <p class="perfil-section-title" style="margin-top:0.8rem;">Segurança</p>
+
+            <div class="form-group">
+              <label for="perfilSenhaAtual">Senha atual</label>
+              <div class="password-wrapper">
+                <input
+                  type="password"
+                  id="perfilSenhaAtual"
+                  name="perfilSenhaAtual"
+                  placeholder="••••••••"
+                  autocomplete="current-password"
+                  readonly
+                />
+                <button type="button" class="toggle-pass" data-target="perfilSenhaAtual" title="Mostrar/ocultar">👁</button>
+              </div>
+            </div>
+
+            <!-- Link Alterar senha -->
+            <a href="perfil_senha.html" class="link-mudar-senha" id="linkMudarSenha">
+              🔑 Alterar senha
+            </a>
+
+            <div id="perfilMsg" class="perfil-msg" role="status"></div>
+
+            <button type="submit" class="btn-primary" id="btnGuardar">
+              Guardar alterações
+            </button>
+          </form>
+
+          <!-- Sessão -->
+          <p class="perfil-section-title" style="margin-top:1.4rem;">Sessão</p>
+
+          <button type="button" class="btn-danger" id="btnTerminarSessao">
+            ⏻ Terminar sessão
+          </button>
+        </div>
+      </main>
+
+      <footer class="page-footer">
+        <p>© 2026 GM Desporto — Gestão de Equipamentos Desportivos</p>
+      </footer>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="appShell.js"></script>
+    <script src="perfil.js"></script>
+  </body>
+</html>

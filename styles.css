@@ -460,6 +460,13 @@ body {
   text-decoration: underline;
 }
 
+.main-menu a.active {
+  color: #ffc2cd !important;
+  font-weight: 700;
+  opacity: 1;
+  text-shadow: 0 0 12px rgba(255, 150, 160, 0.45);
+}
+
 .main-menu.main-menu-prof ul {
   justify-content: center;
   flex-wrap: wrap;
@@ -811,6 +818,8 @@ body {
 .inventory-wrapper {
   width: 100%;
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 65vh;
 }
 
 .listagem-admin-layout {
@@ -939,6 +948,13 @@ body {
   background-color: #f3f3f3;
 }
 
+.inventory-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #f3f3f3;
+}
+
 .inventory-table th,
 .inventory-table td {
   padding: 10px 12px;
@@ -952,49 +968,43 @@ body {
 
 .inventory-table th:nth-child(1),
 .inventory-table td:nth-child(1) {
-  min-width: 8rem;
+  min-width: 6rem; /* Escola */
 }
 
 .inventory-table th:nth-child(2),
 .inventory-table td:nth-child(2) {
-  min-width: 9rem;
+  min-width: 6rem; /* EDF/DE */
 }
 
 .inventory-table th:nth-child(3),
-.inventory-table td:nth-child(3),
-.inventory-table th:nth-child(4),
-.inventory-table td:nth-child(4) {
-  min-width: 5.5rem;
+.inventory-table td:nth-child(3) {
+  min-width: 12rem; /* Descrição */
 }
 
+.inventory-table th:nth-child(4),
+.inventory-table td:nth-child(4),
 .inventory-table th:nth-child(5),
 .inventory-table td:nth-child(5) {
-  min-width: 7rem;
+  min-width: 6rem; /* Quantidade / Stock */
 }
 
 .inventory-table th:nth-child(6),
 .inventory-table td:nth-child(6) {
-  min-width: 9rem;
+  min-width: 9rem; /* Empresa/Data */
 }
 
 .inventory-table th:nth-child(7),
-.inventory-table td:nth-child(7) {
-  min-width: 7rem;
-}
-
+.inventory-table td:nth-child(7),
 .inventory-table th:nth-child(8),
-.inventory-table td:nth-child(8) {
-  min-width: 6rem;
-}
-
+.inventory-table td:nth-child(8),
 .inventory-table th:nth-child(9),
 .inventory-table td:nth-child(9) {
-  min-width: 5rem;
+  min-width: 5.5rem; /* Bom / Razoavel / Mau */
 }
 
 .inventory-table th:nth-child(10),
 .inventory-table td:nth-child(10) {
-  min-width: 8rem;
+  min-width: 8rem; /* Localizacao */
 }
 
 .inventory-table tbody tr:nth-child(odd) {
@@ -1276,3 +1286,170 @@ body {
   }
 }
 
+
+/* Autocomplete Dropdown */
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  margin-top: 4px;
+}
+
+.autocomplete-list.hidden {
+  display: none;
+}
+
+.autocomplete-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s;
+  font-size: 0.875rem;
+  color: #334155;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover {
+  background-color: #f8fafc;
+  color: #8b0000;
+}
+
+
+
+/* Custom Select */
+.custom-select-display {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  color: var(--text-main);
+  background-color: var(--surface-color);
+  transition: border-color 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.custom-select-display::after {
+  content: '?';
+  font-size: 0.7rem;
+  color: #64748b;
+  transition: color 0.2s;
+}
+.custom-select-display:hover {
+  border-color: var(--primary-light);
+}
+.custom-select-display:hover::after {
+  color: #1e40af;
+}
+
+/* Paginação */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 1rem 0;
+}
+.pagination-btn {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-main);
+  transition: all 0.2s ease;
+}
+.pagination-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.pagination-btn.active {
+  background: var(--wine-dark);
+  color: white;
+  border-color: var(--wine-dark);
+}
+.pagination-info {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0 0.5rem;
+}
+
+/* Responsividade da Tabela (Mobile Cards) */
+@media (max-width: 768px) {
+  .inventory-table, 
+  .inventory-table thead, 
+  .inventory-table tbody, 
+  .inventory-table th, 
+  .inventory-table td, 
+  .inventory-table tr {
+    display: block;
+    min-width: 0 !important;
+  }
+  
+  /* Esconder o thead sem perder acessibilidade para leitores de ecrã */
+  .inventory-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  
+  .inventory-table tr {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background: var(--surface-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+  
+  .inventory-table td {
+    border: none;
+    border-bottom: 1px solid #f1f5f9;
+    position: relative;
+    padding-left: 45%;
+    text-align: right;
+    min-height: 2.5rem;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    white-space: normal;
+  }
+  
+  .inventory-table td:last-child {
+    border-bottom: 0;
+  }
+  
+  .inventory-table td::before {
+    position: absolute;
+    top: 50%;
+    left: 0.75rem;
+    transform: translateY(-50%);
+    width: 40%;
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    content: attr(data-label);
+    font-size: 0.8rem;
+  }
+}

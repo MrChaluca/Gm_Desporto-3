@@ -48,31 +48,7 @@ async function executarRetirarDoStock(payload) {
   await atualizarEstadoRelato(relId, { status: "positivo", admin_hidden: true });
 }
 
-async function executarColocarEmManutencao(payload) {
-  const { relId, equipId, qtd } = payload;
-  const { data: eq, error } = await supabaseClient
-    .from("equipamentos")
-    .select("quantidade")
-    .eq("id", equipId)
-    .single();
-  if (error) throw error;
 
-  const manut = await obterManutencaoAtual(equipId);
-  const total = Number(eq.quantidade);
-  const disp = Math.max(0, total - manut);
-  const pedido = Number(qtd);
-  const qtyToAdd = Math.min(pedido, disp);
-
-  if (qtyToAdd <= 0) {
-    throw new Error(
-      "Não há unidades disponíveis para colocar em manutenção (stock já em manutenção ou quantidade zero)."
-    );
-  }
-
-  const newManut = manut + qtyToAdd;
-  await setManutencaoQuantidadeSupabase(equipId, newManut);
-  await atualizarEstadoRelato(relId, { status: "positivo", admin_hidden: true });
-}
 
 let pendingExec = null;
 
@@ -149,17 +125,23 @@ async function carregarRelatados() {
     const tr = document.createElement("tr");
     const dh = r.data_hora || r.created_at;
     const td0 = document.createElement("td");
+    td0.dataset.label = "Data e hora";
     td0.textContent = dh ? new Date(dh).toLocaleString("pt-PT") : "—";
     const td1 = document.createElement("td");
+    td1.dataset.label = "Equipamento";
     td1.textContent = r.nome_equipamento || "—";
     const td2 = document.createElement("td");
+    td2.dataset.label = "Tipo";
     td2.textContent = labelTipo(r.tipo_ocorrencia);
     const td3 = document.createElement("td");
+    td3.dataset.label = "Qtd.";
     td3.textContent = String(r.quantidade ?? "—");
     const td4 = document.createElement("td");
+    td4.dataset.label = "Descrição";
     td4.textContent = (r.descricao || "").trim() || "—";
 
     const td5 = document.createElement("td");
+    td5.dataset.label = "Ações";
     const eqId = r.equipamento_id != null ? Number(r.equipamento_id) : null;
 
     if (eqId && Number(r.quantidade) > 0) {
@@ -226,7 +208,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  window.GMApp?.setupMenuToggle("btnMenuToggleRelatados", "mainMenu");
+  window.GMApp?.setupMenuToggle("btnMenuToggle", "mainMenu");
 
   const modal = document.getElementById("relatadosConfirmModal");
   const btnOk = document.getElementById("relatadosConfirmOk");

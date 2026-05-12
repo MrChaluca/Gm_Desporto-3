@@ -9,10 +9,12 @@ window.GMApp = (() => {
     adminUsage: "relatados.html",
     adminReports: "relatos.html",
     adminLocations: "locais.html",
+    adminAbates: "abates.html",
     profReports: "professores.html",
     profUsage: "professores_relatados.html",
     profInventory: "professores_inventario.html",
     profLocations: "professores_locais.html",
+    userProfile: "perfil.html",
   };
 
   function route(key) {
@@ -39,7 +41,11 @@ window.GMApp = (() => {
       const isOpen = !menu.classList.contains("hidden");
       button.classList.toggle("is-menu-open", isOpen);
       button.setAttribute("aria-expanded", String(isOpen));
+      if (isOpen) markActiveLink();
     });
+
+    markActiveLink();
+    window.addEventListener("hashchange", markActiveLink);
 
     mountRoleSwitchButton();
     mountProfileButton();
@@ -158,6 +164,7 @@ window.GMApp = (() => {
 
   function mountProfileButton() {
     if (window.location.pathname.endsWith("index.html")) return;
+    if (window.location.pathname.endsWith("perfil.html")) return;
     if (!getCurrentEmail()) return;
 
     const topRight = document.querySelector(".top-right");
@@ -170,7 +177,7 @@ window.GMApp = (() => {
     btn.dataset.profileEdit = "1";
     btn.textContent = "Editar perfil";
     btn.addEventListener("click", () => {
-      editProfile();
+      window.location.href = routes.userProfile;
     });
 
     topRight.insertBefore(btn, topRight.firstChild);
@@ -183,6 +190,36 @@ window.GMApp = (() => {
       if (!key || !routes[key]) return;
       const href = hash ? `${routes[key]}${hash}` : routes[key];
       if (el.tagName === "A") el.setAttribute("href", href);
+    });
+  }
+
+  function markActiveLink() {
+    const fullPath = window.location.pathname;
+    const currentPath = fullPath.split("/").pop() || "index.html";
+    const currentHash = window.location.hash || "";
+
+    document.querySelectorAll(".main-menu a").forEach((link) => {
+      const href = link.getAttribute("href") || "";
+      link.classList.remove("active");
+
+      // Se estivermos na principal.html, prioridade ao hash
+      if (currentPath === "principal.html") {
+        if (currentHash) {
+          if (href.includes(currentHash)) {
+            link.classList.add("active");
+          }
+        } else {
+          // Se não houver hash na URL, o link do dashboard é o ativo por defeito
+          if (href === "#dashboard" || href === "principal.html#dashboard") {
+            link.classList.add("active");
+          }
+        }
+      } else {
+        // Em outras páginas, comparamos o nome do ficheiro
+        if (href.includes(currentPath) && !href.includes("#")) {
+          link.classList.add("active");
+        }
+      }
     });
   }
 
