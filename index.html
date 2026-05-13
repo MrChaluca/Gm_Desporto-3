@@ -101,6 +101,31 @@
                 id="regEmail"
                 name="regEmail"
                 placeholder="seu.email@exemplo.pt"
+                autocomplete="email"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="regPassword">Palavra-passe</label>
+              <input
+                type="password"
+                id="regPassword"
+                name="regPassword"
+                placeholder="Crie uma palavra-passe"
+                autocomplete="new-password"
+                minlength="6"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="regPasswordConfirm">Confirmar palavra-passe</label>
+              <input
+                type="password"
+                id="regPasswordConfirm"
+                name="regPasswordConfirm"
+                placeholder="Repita a palavra-passe"
+                autocomplete="new-password"
+                minlength="6"
                 required
               />
             </div>
@@ -130,8 +155,8 @@
     </div>
     <script src="supabase.js"></script>
     <script src="supabaseClient.js?v=3"></script>
-    <script src="appShell.js?v=3"></script>
-    <script src="login.js?v=4"></script>
+    <script src="appShell.js?v=4"></script>
+    <script src="login.js?v=7"></script>
     <script src="customSelect.js?v=3"></script>
   </body>
 </html>

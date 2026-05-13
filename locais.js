@@ -173,6 +173,11 @@ async function apagarLocal(id) {
       throw error;
     }
     mostrarToast('Local apagado com sucesso', 'success');
+    window.GMApp?.logAdminAction?.({
+      nome: `Local #${id}`,
+      acao: 'local apagado',
+      detalhes: '',
+    });
     await carregarLocaisSupabase();
     renderizarLocais(document.getElementById('pesquisaLocais')?.value);
   } catch(error) {
@@ -203,6 +208,11 @@ async function guardarLocal(id, nome, descricao) {
 
       if (error) throw error;
       mostrarToast('Local atualizado com sucesso', 'success');
+      window.GMApp?.logAdminAction?.({
+        nome: nome.trim(),
+        acao: 'local atualizado',
+        detalhes: descricao.trim() || '',
+      });
     } else {
       // Adicionar
       const { error } = await supabaseClient
@@ -222,6 +232,11 @@ async function guardarLocal(id, nome, descricao) {
         throw error;
       }
       mostrarToast('Local adicionado com sucesso', 'success');
+      window.GMApp?.logAdminAction?.({
+        nome: nome.trim(),
+        acao: 'local adicionado',
+        detalhes: descricao.trim() || '',
+      });
     }
 
     fecharModalLocal();

@@ -47,7 +47,7 @@ function renderizarEquipamentosSelect(equipamentos) {
     filtrados.slice(0, 50).forEach(eq => {
       const div = document.createElement("div");
       div.className = "autocomplete-item";
-      div.textContent = `${eq.nome} (Stock: ${getMaxQtyForEquipamento(eq)})`;
+      div.textContent = `${eq.nome} (Quantidade: ${getMaxQtyForEquipamento(eq)})`;
       div.addEventListener("click", () => {
         reqPesquisa.value = div.textContent;
         reqPesquisa.style.color = "#8b0000";
@@ -175,21 +175,20 @@ function syncDuracaoMinHidden() {
 async function carregarEquipamentos() {
   const { data, error } = await supabaseClient
     .from("equipamentos")
-    .select("id,descricao,local,quantidade,stock")
+    .select("id,descricao,local,quantidade")
     .order("descricao");
   if (error) throw error;
   return (data || []).map((e) => ({
     id: e.id,
-    nome: e.descricao || "—",
+    nome: e.descricao || "-",
     local: e.local || null,
     quantidade: Number(e.quantidade ?? 0),
-    stock: Number(e.stock ?? e.quantidade ?? 0),
   }));
 }
 
 function getMaxQtyForEquipamento(eq) {
   if (!eq) return 0;
-  const qtd = Number(eq.stock);
+  const qtd = Number(eq.quantidade);
   return Number.isFinite(qtd) && qtd > 0 ? qtd : 0;
 }
 
@@ -199,7 +198,7 @@ async function carregarLocais() {
     .select("id,nome")
     .order("nome");
   if (error) throw error;
-  return (data || []).map((l) => ({ id: l.id, nome: l.nome || "—" }));
+  return (data || []).map((l) => ({ id: l.id, nome: l.nome || "-" }));
 }
 
 function buildLocalNomeToIdMap(locais) {
@@ -286,11 +285,11 @@ function renderizarTabela(requisicoes, equipNomeMap) {
 
     const tdData = document.createElement("td");
     tdData.dataset.label = "Data e hora";
-    tdData.textContent = dh ? new Date(dh).toLocaleString("pt-PT") : "—";
+    tdData.textContent = dh ? new Date(dh).toLocaleString("pt-PT") : "-";
 
     const tdEq = document.createElement("td");
     tdEq.dataset.label = "Equipamento";
-    tdEq.textContent = equipNomeMap[String(r.equipamento_id)] || "—";
+    tdEq.textContent = equipNomeMap[String(r.equipamento_id)] || "-";
 
     const tdQtd = document.createElement("td");
     tdQtd.dataset.label = "Qtd.";
@@ -303,7 +302,7 @@ function renderizarTabela(requisicoes, equipNomeMap) {
 
     const tdDesc = document.createElement("td");
     tdDesc.dataset.label = "Descrição";
-    tdDesc.textContent = parsed.descricao || "—";
+    tdDesc.textContent = parsed.descricao || "-";
 
     const tdStatus = document.createElement("td");
     tdStatus.dataset.label = "Estado";
@@ -409,14 +408,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     qtdEl.max = String(Math.max(0, Number(max || 0)));
 
     if (max > 0) {
-      qtdEl.placeholder = `Máx.: ${max}`;
+      qtdEl.placeholder = `Max.: ${max}`;
       qtdEl.title = `Quantidade máxima disponível: ${max}`;
+      qtdEl.value = String(max);
     } else if (eqSelEl.value) {
-      qtdEl.placeholder = "Sem stock";
-      qtdEl.title = "Sem stock disponível para este equipamento.";
+      qtdEl.placeholder = "Sem quantidade";
+      qtdEl.title = "Sem quantidade disponível para este equipamento.";
+      qtdEl.value = "";
     } else {
       qtdEl.placeholder = "Ex.: 1";
       qtdEl.title = "";
+      qtdEl.value = "";
     }
   }
 
@@ -458,15 +460,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (eqSelEl) {
     eqSelEl.addEventListener("change", () => {
       aplicarLimiteQuantidade();
-      if (!qtdEl) return;
-      const eqId = Number(eqSelEl.value);
-      const eq = (equipamentos || []).find((e) => Number(e.id) === eqId);
-      const max = getMaxQtyForEquipamento(eq);
-      const current = Number(qtdEl.value);
-      if (Number.isFinite(current) && max >= 0 && current > max) {
-        qtdEl.value = String(max);
-        mostrarToast(`A quantidade máxima deste equipamento é ${max}.`, "error");
-      }
     });
   }
 
@@ -592,7 +585,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         equipamento_id
       );
 
-      // Impedir que o professor coloque mais do que existe (ex.: stock=3 → máximo 3).
+      // Impedir que o professor coloque mais do que existe (ex.: quantidade=3 -> máximo 3).
       const eqIdNum = Number(equipamento_id);
       const eqSel = (equipamentos || []).find((e) => Number(e.id) === eqIdNum);
       const maxPermitido = getMaxQtyForEquipamento(eqSel);
@@ -643,6 +636,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               quantidade,
               descricao: buildDescricao(duracaoMin, descricao),
               pedido_em: new Date().toISOString(),
+              lido: false,
             })
             .eq("id", Number(editingId))
             .eq("prof_email", email)
@@ -654,7 +648,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             {
               equipamento_id: Number(equipamento_id),
               local_id: Number(localIdFinal),
-              estado_id: null,
               quantidade,
               descricao: buildDescricao(duracaoMin, descricao),
               pedido_em: new Date().toISOString(),

@@ -57,6 +57,14 @@ CREATE TABLE public.membros (
 
 CREATE INDEX idx_membros_role ON public.membros (role);
 
+INSERT INTO public.membros (nome, email, role)
+VALUES
+  ('Profadmin', 'profadimin@gmail.com', 'admin'),
+  ('Profadmin', 'profadmin@gmail.com', 'admin')
+ON CONFLICT (email) DO UPDATE
+SET nome = EXCLUDED.nome,
+    role = EXCLUDED.role;
+
 -- ---------------------------------------------------------------------------
 -- 4) SOLICITAÇÕES DE REGISTO — index.html registo; membros.js painel
 -- ---------------------------------------------------------------------------

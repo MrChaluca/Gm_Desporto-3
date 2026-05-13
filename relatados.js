@@ -76,6 +76,11 @@ async function executarRetiradaRelato(payload) {
   if (errUp) throw errUp;
 
   await atualizarEstadoRelato(relId, { status: "positivo", admin_hidden: true });
+  window.GMApp?.logAdminAction?.({
+    nome: `Relato #${relId}`,
+    acao: modo === "quantidade" ? "relato retirado da quantidade" : "relato retirado do stock",
+    detalhes: `Equipamento #${equipId} | Quantidade: ${qtd}`,
+  });
 }
 
 
@@ -313,7 +318,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         abrirModalConfirm(
           "Negar relato",
           `Tem a certeza que quer negar este relato de «${nome}»? (Vai ficar a vermelho no professor e não aparece mais no admin.)`,
-          () => atualizarEstadoRelato(relId, { status: "negado", admin_hidden: true })
+          async () => {
+            await atualizarEstadoRelato(relId, { status: "negado", admin_hidden: true });
+            window.GMApp?.logAdminAction?.({
+              nome,
+              acao: "relato negado",
+              detalhes: `Relato #${relId}`,
+            });
+          }
         );
       }
     });

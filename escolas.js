@@ -173,6 +173,11 @@ async function apagarEscola(id) {
       throw error;
     }
     mostrarToast('Escola apagada com sucesso', 'success');
+    window.GMApp?.logAdminAction?.({
+      nome: `Escola #${id}`,
+      acao: 'escola apagada',
+      detalhes: '',
+    });
     await carregarEscolasSupabase();
     renderizarEscolas(document.getElementById('pesquisaEscolas')?.value);
   } catch(error) {
@@ -202,6 +207,11 @@ async function guardarEscola(id, sigla, nome) {
 
       if (error) throw error;
       mostrarToast('Escola atualizada com sucesso', 'success');
+      window.GMApp?.logAdminAction?.({
+        nome: sigla.trim(),
+        acao: 'escola atualizada',
+        detalhes: nome.trim() || '',
+      });
     } else {
       // Adicionar
       const { error } = await supabaseClient
@@ -221,6 +231,11 @@ async function guardarEscola(id, sigla, nome) {
         throw error;
       }
       mostrarToast('Escola adicionada com sucesso', 'success');
+      window.GMApp?.logAdminAction?.({
+        nome: sigla.trim(),
+        acao: 'escola adicionada',
+        detalhes: nome.trim() || '',
+      });
     }
 
     fecharModalEscola();

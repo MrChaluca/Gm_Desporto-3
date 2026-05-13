@@ -42,7 +42,7 @@
       <nav class="main-menu main-menu-prof" id="mainMenuProf">
         <ul>
           <li><a href="professores.html" data-route="profReports" class="menu-link">Ocorrências</a></li>
-          <li><a href="professores_relatados.html" data-route="profUsage" class="menu-link">Minha listagem</a></li>
+          <li><a href="professores_relatados.html" data-route="profUsage" class="menu-link">Minha lista</a></li>
           <li><a href="professores_inventario.html" data-route="profInventory" class="menu-link">Inventário (consulta)</a></li>
           <li><a href="professores_locais.html" data-route="profLocations" class="menu-link">Locais</a></li>
         </ul>
@@ -51,11 +51,20 @@
       <main class="content content-main">
         <section class="card card-wide" id="relatar">
           <div class="card-header card-header-left">
-            <h1 class="card-title">Relatar ocorrência</h1>
+            <h1 class="card-title">Ocorrências</h1>
             <p class="card-subtitle">
               Professores podem relatar equipamentos danificados ou em falta. O
               stock será atualizado posteriormente pelos responsáveis.
             </p>
+          </div>
+
+          <div class="tabs">
+            <button class="tab active" id="tabNovoRelato" type="button">
+              Novo relato
+            </button>
+            <button class="tab" id="tabHistoricoRelatos" type="button">
+              Histórico de relatos
+            </button>
           </div>
 
           <form class="equip-form" id="relatarForm" novalidate>
@@ -114,6 +123,35 @@
             <div class="form-message" id="relatarMessage" role="status"></div>
           </form>
         </section>
+
+        <section class="card card-wide" id="relatosProf" style="display: none;">
+          <div class="card-header card-header-left">
+            <h2 class="card-title card-title-small">As minhas ocorrências</h2>
+            <p class="card-subtitle">
+              Consulte as ocorrências que enviou aos responsáveis.
+            </p>
+          </div>
+
+          <div class="inventory-wrapper">
+            <table class="inventory-table">
+              <thead>
+                <tr>
+                  <th>Data e hora</th>
+                  <th>Equipamento</th>
+                  <th>Tipo</th>
+                  <th>Qtd.</th>
+                  <th>Descrição</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="relatadosProfBody">
+                <tr class="inventory-empty-row">
+                  <td colspan="6">Ainda não existem ocorrências enviadas por si.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </main>
 
       <footer class="page-footer">
@@ -126,7 +164,7 @@
     <script src="supabase.js"></script>
     <script src="supabaseClient.js?v=3"></script>
     <script src="appShell.js?v=3"></script>
-    <script src="professores.js?v=3"></script>
+    <script src="professores.js?v=6"></script>
     <script src="customSelect.js?v=3"></script>
   </body>
 </html>

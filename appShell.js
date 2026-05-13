@@ -1,5 +1,5 @@
 window.GMApp = (() => {
-  const DUAL_ROLE_EMAILS = ["profadimin@gmail.com"];
+  const DUAL_ROLE_EMAILS = ["profadimin@gmail.com", "profadmin@gmail.com"];
   const DUAL_ROLE_FLAG_KEY = "gm_desporto_dual_role";
 
   const routes = {
@@ -249,6 +249,26 @@ window.GMApp = (() => {
     });
   }
 
+  function logAdminAction({ nome = "", acao = "", detalhes = "" } = {}) {
+    try {
+      const key = "gm_desporto_historico";
+      const raw = localStorage.getItem(key);
+      const historico = raw ? JSON.parse(raw) : [];
+      const lista = Array.isArray(historico) ? historico : [];
+      lista.push({
+        id: Date.now(),
+        nome: nome || "Admin",
+        acao: acao || "ação",
+        detalhes: detalhes || "",
+        adminEmail: getCurrentEmail(),
+        dataHora: new Date().toISOString(),
+      });
+      localStorage.setItem(key, JSON.stringify(lista));
+    } catch (e) {
+      console.warn("Não foi possível registar no histórico.", e);
+    }
+  }
+
   return {
     routes,
     route,
@@ -268,5 +288,6 @@ window.GMApp = (() => {
     redirectUnlessRole,
     wireRouteLinks,
     markActiveLink,
+    logAdminAction,
   };
 })();

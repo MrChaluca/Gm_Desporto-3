@@ -35,8 +35,6 @@ async function carregarManutencaoSupabaseMap() {
 }
 
 function disponivelQtd(item) {
-  const stock = Number(item.stock);
-  if (Number.isFinite(stock)) return Math.max(0, stock);
   return Math.max(0, Number(item.quantidade || 0));
 }
 
@@ -91,6 +89,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const relatarDescricao = document.getElementById("relatarDescricao");
   const relatarMessage = document.getElementById("relatarMessage");
   const relatarLimpar = document.getElementById("relatarLimpar");
+  const relatarSection = document.getElementById("relatar");
+  const relatosProfSection = document.getElementById("relatosProf");
+  const tabNovoRelato = document.getElementById("tabNovoRelato");
+  const tabHistoricoRelatos = document.getElementById("tabHistoricoRelatos");
   const btnMenuToggleProf = document.getElementById("btnMenuToggleProf");
   const mainMenuProf = document.getElementById("mainMenuProf");
 
@@ -98,6 +100,19 @@ document.addEventListener("DOMContentLoaded", () => {
     relatarMessage.textContent = "";
     relatarMessage.className = "form-message";
   }
+
+  function mostrarPainelRelatos(painel) {
+    const mostrarHistorico = painel === "historico";
+    if (relatarForm) relatarForm.style.display = mostrarHistorico ? "none" : "";
+    if (relatosProfSection) relatosProfSection.style.display = mostrarHistorico ? "" : "none";
+    if (tabNovoRelato) tabNovoRelato.classList.toggle("active", !mostrarHistorico);
+    if (tabHistoricoRelatos) tabHistoricoRelatos.classList.toggle("active", mostrarHistorico);
+    if (relatarSection && mostrarHistorico) relatarSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  if (tabNovoRelato) tabNovoRelato.addEventListener("click", () => mostrarPainelRelatos("novo"));
+  if (tabHistoricoRelatos) tabHistoricoRelatos.addEventListener("click", () => mostrarPainelRelatos("historico"));
+  mostrarPainelRelatos("novo");
 
   function limparErros() {
     document
@@ -184,8 +199,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const row = document.createElement("tr");
       row.className = "inventory-empty-row";
       const cell = document.createElement("td");
-      cell.colSpan = 7;
-      cell.textContent = "Ainda não existem relatórios enviados por si.";
+      cell.colSpan = 6;
+      cell.textContent = "Ainda não existem ocorrências enviadas por si.";
       row.appendChild(cell);
       relatadosProfBody.appendChild(row);
       return;
@@ -262,7 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
       row.className = "inventory-empty-row";
       const cell = document.createElement("td");
       cell.colSpan = 6;
-      cell.textContent = "Ainda não existem relatórios enviados por si.";
+      cell.textContent = "Ainda não existem ocorrências enviadas por si.";
       row.appendChild(cell);
       relatadosProfBody.appendChild(row);
       return;
@@ -355,7 +370,7 @@ document.addEventListener("DOMContentLoaded", () => {
       filtrados.slice(0, 50).forEach(eq => {
         const div = document.createElement("div");
         div.className = "autocomplete-item";
-        div.textContent = `${eq.categoria ? eq.categoria + ' - ' : ''}${eq.nome} (Stock: ${disponivelQtd(eq)})`;
+        div.textContent = `${eq.categoria ? eq.categoria + ' - ' : ''}${eq.nome} (Quantidade: ${disponivelQtd(eq)})`;
         div.addEventListener("click", () => {
           relatarPesquisa.value = div.textContent;
           relatarPesquisa.style.color = "#8b0000";
@@ -538,7 +553,7 @@ document.addEventListener("DOMContentLoaded", () => {
       guardarJSON(HISTORY_KEY, historico);
       renderizarRelatadosProfLocal();
 
-      mostrarToast("Relatório enviado aos responsáveis.", "success");
+      mostrarToast("Ocorrência enviada aos responsáveis.", "success");
 
       relatarForm.reset();
       if (relatarPesquisa) {
@@ -566,7 +581,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (error) {
           console.error(error);
           mostrarToast(
-            "Relatório guardado neste dispositivo. Erro ao gravar no servidor.",
+            "Ocorrência guardada neste dispositivo. Erro ao gravar no servidor.",
             "error"
           );
         }

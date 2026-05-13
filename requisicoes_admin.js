@@ -249,7 +249,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   } catch (e) {
     console.error(e);
-    mostrarToast(e?.message || "Erro ao carregar listagem de uso.", "error");
+    mostrarToast(e?.message || "Erro ao carregar lista de uso.", "error");
   }
 
   const listaProfessoresAdmin = document.getElementById("listaProfessoresAdmin");

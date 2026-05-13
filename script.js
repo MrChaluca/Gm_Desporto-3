@@ -258,9 +258,10 @@ function validarFormulario(form) {
     if (n !== null) somaEstados += n;
   }
 
-  if (Number.isFinite(q) && somaEstados > q) {
+  const limiteEstados = (Number.isFinite(q) ? q : 0) + (Number.isFinite(s) ? s : 0);
+  if (somaEstados > limiteEstados) {
     const erro = document.querySelector('[data-error-for="estadoBom"]');
-    if (erro) erro.textContent = "Soma dos estados não pode ser maior que a quantidade.";
+    if (erro) erro.textContent = "Soma dos estados não pode ser maior que quantidade + stock.";
     valido = false;
   }
 
@@ -852,6 +853,14 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (typeof supabaseClient !== "undefined") {
             if (eraEdicao) {
               await atualizarEquipamentoSupabase(editingId, dados);
+              historico.push({
+                id: Date.now(),
+                nome: dados.nome,
+                acao: "equipamento editado",
+                detalhes: `Qtd: ${dados.quantidade} | Stock: ${dados.stock} | Local: ${dados.localizacao}`,
+                dataHora: new Date().toISOString(),
+              });
+              guardarHistorico(historico);
             } else {
               await inserirEquipamentoSupabase(dados);
               historico.push({

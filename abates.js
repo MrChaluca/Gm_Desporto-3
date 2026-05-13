@@ -9,8 +9,26 @@ document.addEventListener("DOMContentLoaded", async () => {
   const inputPesquisa = document.getElementById("equipamentoPesquisa");
   const inputId = document.getElementById("equipamentoId");
   const autocompleteList = document.getElementById("equipamentoAutocomplete");
+  const tipoRetiradaSelect = document.getElementById("tipoRetirada");
+  const registoAbateSection = document.getElementById("registoAbate");
+  const historicoAbatesSection = document.getElementById("historicoAbates");
+  const tabNovoAbate = document.getElementById("tabNovoAbate");
+  const tabHistoricoAbates = document.getElementById("tabHistoricoAbates");
 
   let equipamentosCache = [];
+
+  function mostrarPainelAbates(painel) {
+    const mostrarHistorico = painel === "historico";
+    if (abateForm) abateForm.style.display = mostrarHistorico ? "none" : "";
+    if (historicoAbatesSection) historicoAbatesSection.style.display = mostrarHistorico ? "" : "none";
+    if (tabNovoAbate) tabNovoAbate.classList.toggle("active", !mostrarHistorico);
+    if (tabHistoricoAbates) tabHistoricoAbates.classList.toggle("active", mostrarHistorico);
+    if (registoAbateSection && mostrarHistorico) registoAbateSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  if (tabNovoAbate) tabNovoAbate.addEventListener("click", () => mostrarPainelAbates("novo"));
+  if (tabHistoricoAbates) tabHistoricoAbates.addEventListener("click", () => mostrarPainelAbates("historico"));
+  mostrarPainelAbates("novo");
 
   function mostrarToast(texto, tipo = "success") {
     const toast = document.getElementById("toast");
@@ -35,6 +53,56 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (error) {
       console.error("Erro ao carregar equipamentos:", error);
       mostrarToast("Erro ao carregar equipamentos.", "error");
+    }
+  }
+
+  function getTipoRetirada() {
+    return tipoRetiradaSelect?.value === "quantidade" ? "quantidade" : "stock";
+  }
+
+  function getValorDisponivel(eq, tipo = getTipoRetirada()) {
+    if (!eq) return 0;
+    const valor = tipo === "quantidade" ? Number(eq.quantidade || 0) : Number(eq.stock || 0);
+    return Number.isFinite(valor) && valor > 0 ? valor : 0;
+  }
+
+  function getLabelDisponivel(tipo = getTipoRetirada()) {
+    return tipo === "quantidade" ? "Quantidade" : "Stock";
+  }
+
+  function getEquipamentoTexto(eq, tipo = getTipoRetirada()) {
+    const prefix = eq.edf_de ? `${eq.edf_de} - ` : "";
+    return `${prefix}${eq.descricao} (${getLabelDisponivel(tipo)}: ${getValorDisponivel(eq, tipo)})`;
+  }
+
+  function getEquipamentoSelecionado() {
+    return equipamentosCache.find(eq => String(eq.id) === String(inputId?.value || ""));
+  }
+
+  function atualizarEquipamentoSelecionado() {
+    const eq = getEquipamentoSelecionado();
+    const tipo = getTipoRetirada();
+    const erroQtd = document.querySelector('[data-error-for="quantidade"]');
+    const qtdInput = abateForm?.quantidade;
+    if (erroQtd) erroQtd.textContent = "";
+
+    if (!eq) {
+      if (qtdInput) {
+        qtdInput.removeAttribute("max");
+        qtdInput.placeholder = "Ex.: 2";
+      }
+      return;
+    }
+
+    const max = getValorDisponivel(eq, tipo);
+    inputPesquisa.value = getEquipamentoTexto(eq, tipo);
+    inputPesquisa.style.color = "#8b0000";
+    inputPesquisa.style.fontWeight = "600";
+
+    if (qtdInput) {
+      qtdInput.max = String(max);
+      qtdInput.placeholder = `Máx.: ${max}`;
+      if (Number(qtdInput.value) > max) qtdInput.value = String(max);
     }
   }
 
@@ -67,15 +135,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     filtrados.slice(0, 50).forEach(eq => {
       const div = document.createElement("div");
       div.className = "autocomplete-item";
-      div.textContent = `${eq.edf_de ? eq.edf_de + ' - ' : ''}${eq.descricao} (Stock: ${eq.stock})`;
+      div.textContent = getEquipamentoTexto(eq);
       div.addEventListener("click", () => {
-        inputPesquisa.value = div.textContent;
-        inputPesquisa.style.color = "#8b0000";
-        inputPesquisa.style.fontWeight = "600";
         if (inputId) {
           inputId.value = eq.id;
           inputId.dispatchEvent(new Event("change"));
         }
+        atualizarEquipamentoSelecionado();
         autocompleteList.classList.add("hidden");
       });
       autocompleteList.appendChild(div);
@@ -88,6 +154,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     inputPesquisa.style.color = "";
     inputPesquisa.style.fontWeight = "";
     if (inputId) inputId.value = "";
+    const qtdInput = abateForm?.quantidade;
+    if (qtdInput) {
+      qtdInput.removeAttribute("max");
+      qtdInput.placeholder = "Ex.: 2";
+    }
     renderizarAutocomplete(e.target.value);
   });
 
@@ -100,6 +171,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       autocompleteList.classList.add("hidden");
     }
   });
+
+  if (inputId) inputId.addEventListener("change", atualizarEquipamentoSelecionado);
+  if (tipoRetiradaSelect) tipoRetiradaSelect.addEventListener("change", atualizarEquipamentoSelecionado);
 
   async function carregarAbates() {
     try {
@@ -153,7 +227,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const equipId = abateForm.equipamentoId.value;
     const quantidade = parseInt(abateForm.quantidade.value, 10);
-    const tipoRetirada = abateForm.tipoRetirada?.value === "quantidade" ? "quantidade" : "stock";
+    const tipoRetirada = getTipoRetirada();
     const motivo = abateForm.motivo.value.trim();
 
     let valido = true;
@@ -170,7 +244,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const equipamento = equipamentosCache.find(eq => String(eq.id) === String(equipId));
     const maxDisponivel = equipamento
-      ? Number(tipoRetirada === "quantidade" ? equipamento.quantidade : equipamento.stock)
+      ? getValorDisponivel(equipamento, tipoRetirada)
       : 0;
     if (equipamento && quantidade > maxDisponivel) {
       const alvo = tipoRetirada === "quantidade" ? "na quantidade total" : "em stock";
@@ -222,10 +296,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       mostrarToast("Abate registado com sucesso.");
+      window.GMApp?.logAdminAction?.({
+        nome: equipamento?.descricao || `Equipamento #${equipId}`,
+        acao: "abate registado",
+        detalhes: `Retirou ${quantidade} de ${tipoRetirada === "quantidade" ? "quantidade total" : "stock"}${motivo ? ` | Motivo: ${motivo}` : ""}`,
+      });
       abateForm.reset();
       inputId.value = "";
       await carregarEquipamentos(); // Refresh para atualizar o stock no dropdown
       await carregarAbates();
+      mostrarPainelAbates("historico");
     } catch (error) {
       console.error("Erro ao registar abate:", error);
       mostrarToast("Ocorreu um erro ao registar o abate.", "error");
