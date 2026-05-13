@@ -29,6 +29,52 @@ function carregarHistorico() {
 
 function guardarHistorico(lista) {
   localStorage.setItem(HISTORY_KEY, JSON.stringify(lista));
+  sincronizarHistoricoSupabase(lista);
+}
+
+async function sincronizarHistoricoSupabase(lista) {
+  if (typeof supabaseClient === "undefined" || !Array.isArray(lista) || !lista.length) return;
+  const rows = lista.map((item) => ({
+    client_id: String(item.client_id || item.id || `${item.dataHora || Date.now()}-${item.nome || ""}-${item.acao || ""}`),
+    nome_item: item.nome_item || item.nome || "Admin",
+    acao: item.acao || "ação",
+    detalhes: item.detalhes || "",
+    admin_email: item.admin_email || item.adminEmail || window.GMApp?.getCurrentEmail?.() || null,
+    data_hora: item.data_hora || item.dataHora || new Date().toISOString(),
+  }));
+
+  try {
+    const { error } = await supabaseClient
+      .from("historico_acoes")
+      .upsert(rows, { onConflict: "client_id" });
+    if (error) console.warn("Histórico na BD indisponível.", error);
+  } catch (e) {
+    console.warn("Não foi possível sincronizar histórico com a BD.", e);
+  }
+}
+
+async function carregarHistoricoSupabase() {
+  if (typeof supabaseClient === "undefined") return null;
+  try {
+    const { data, error } = await supabaseClient
+      .from("historico_acoes")
+      .select("id,client_id,nome_item,acao,detalhes,admin_email,data_hora")
+      .order("data_hora", { ascending: false });
+    if (error) throw error;
+    return (data || []).map((row) => ({
+      id: row.client_id || row.id,
+      nome: row.nome_item,
+      nome_item: row.nome_item,
+      acao: row.acao,
+      detalhes: row.detalhes || "",
+      adminEmail: row.admin_email || "",
+      admin_email: row.admin_email || "",
+      dataHora: row.data_hora,
+    }));
+  } catch (e) {
+    console.warn("Histórico na BD indisponível. A usar histórico local.", e);
+    return null;
+  }
 }
 
 function guardarInventario(lista) {
@@ -515,6 +561,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   refreshInventarioFromDb();
   renderizarHistorico(termoPesquisaHistorico);
+  (async () => {
+    const historicoDb = await carregarHistoricoSupabase();
+    if (historicoDb) {
+      historico = historicoDb;
+      guardarHistorico(historico);
+      renderizarHistorico(termoPesquisaHistorico);
+    }
+  })();
   iniciarPollingDashboard();
 
   window.GMApp?.setupMenuToggle("btnMenuToggle", "mainMenu");

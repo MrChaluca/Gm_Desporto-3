@@ -21,6 +21,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 DROP TABLE IF EXISTS public.abates CASCADE;
 DROP TABLE IF EXISTS public.lista CASCADE;
 DROP TABLE IF EXISTS public.relatos CASCADE;
+DROP TABLE IF EXISTS public.historico_acoes CASCADE;
 DROP TABLE IF EXISTS public.solicitacoes_registo CASCADE;
 DROP TABLE IF EXISTS public.membros CASCADE;
 DROP TABLE IF EXISTS public.equipamentos CASCADE;
@@ -120,6 +121,22 @@ CREATE TABLE public.abates (
   utilizador      TEXT
 );
 
+-- ---------------------------------------------------------------------------
+-- 7) HISTÓRICO DE AÇÕES — principal.html (#historico); ações feitas pelo admin
+-- ---------------------------------------------------------------------------
+CREATE TABLE public.historico_acoes (
+  id          BIGSERIAL PRIMARY KEY,
+  client_id   TEXT UNIQUE,
+  nome_item   TEXT NOT NULL DEFAULT 'Admin',
+  acao        TEXT NOT NULL,
+  detalhes    TEXT,
+  admin_email VARCHAR(320),
+  data_hora   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_historico_acoes_data ON public.historico_acoes (data_hora DESC);
+
 CREATE INDEX idx_abates_data ON public.abates (data_abate DESC);
 CREATE INDEX idx_abates_equip ON public.abates (equipamento_id);
 
@@ -218,6 +235,7 @@ ALTER TABLE public.membros ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.solicitacoes_registo ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.equipamentos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.abates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.historico_acoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.relatos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lista ENABLE ROW LEVEL SECURITY;
 
@@ -231,6 +249,7 @@ BEGIN
     'solicitacoes_registo',
     'equipamentos',
     'abates',
+    'historico_acoes',
     'relatos',
     'lista'
   ]

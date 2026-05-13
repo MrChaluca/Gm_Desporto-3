@@ -255,15 +255,36 @@ window.GMApp = (() => {
       const raw = localStorage.getItem(key);
       const historico = raw ? JSON.parse(raw) : [];
       const lista = Array.isArray(historico) ? historico : [];
-      lista.push({
+      const registo = {
         id: Date.now(),
         nome: nome || "Admin",
+        nome_item: nome || "Admin",
         acao: acao || "ação",
         detalhes: detalhes || "",
         adminEmail: getCurrentEmail(),
+        admin_email: getCurrentEmail(),
         dataHora: new Date().toISOString(),
-      });
+      };
+      lista.push(registo);
       localStorage.setItem(key, JSON.stringify(lista));
+
+      if (typeof supabaseClient !== "undefined") {
+        supabaseClient
+          .from("historico_acoes")
+          .insert([
+            {
+              client_id: String(registo.id),
+              nome_item: registo.nome_item,
+              acao: registo.acao,
+              detalhes: registo.detalhes,
+              admin_email: registo.admin_email || null,
+              data_hora: registo.dataHora,
+            },
+          ])
+          .then(({ error }) => {
+            if (error) console.warn("Histórico na BD indisponível.", error);
+          });
+      }
     } catch (e) {
       console.warn("Não foi possível registar no histórico.", e);
     }
