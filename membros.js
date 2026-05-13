@@ -191,10 +191,7 @@ async function rejeitarSolicitacao(id) {
 
 document.addEventListener("DOMContentLoaded", async () => {
   window.GMApp?.wireRouteLinks();
-  if (!window.GMApp?.hasAccess("admin")) {
-    window.GMApp?.goTo("profReports");
-    return;
-  }
+  if (!window.GMApp?.redirectUnlessRole("admin")) return;
 
   window.GMApp?.setupMenuToggle("btnMenuToggle", "mainMenu");
 

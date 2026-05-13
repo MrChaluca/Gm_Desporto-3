@@ -1,16 +1,9 @@
 // Inventário em memória + localStorage
 const STORAGE_KEY = "gm_desporto_inventario";
 const HISTORY_KEY = "gm_desporto_historico";
-  } catch {
-    return {};
-  }
-}
-
-function guardarManutencaoMap(map) {
-  localStorage.setItem(MAINT_KEY, JSON.stringify(map));
-}
 
 // Funções Supabase de manutenção removidas
+
 
 function carregarInventario() {
   try {
@@ -64,7 +57,7 @@ async function carregarEquipamentosSupabase() {
     observacoes: row.observacao || "",
     outrasObservacoes: row.outras_observacao || "",
     edfDe: row.edf_de || "EDF",
-    estado: row.estado || "",
+    estado: "",
     estadoBom: row.estado_bom ?? null,
     estadoRazoavel: row.estado_razoavel ?? null,
     estadoMau: row.estado_mau ?? null,
@@ -98,11 +91,10 @@ async function inserirEquipamentoSupabase(dados) {
         quantidade: dados.quantidade,
         stock: dados.stock,
         empresa_data: dados.empresaData || null,
-        estado: null,
-        estado_bom: dados.estadoBom,
-        estado_razoavel: dados.estadoRazoavel,
-        estado_mau: dados.estadoMau,
-        estado_abate: dados.estadoAbate,
+        estado_bom: dados.estadoBom || null,
+        estado_razoavel: dados.estadoRazoavel || null,
+        estado_mau: dados.estadoMau || null,
+        estado_abate: dados.estadoAbate || null,
         local: dados.localizacao,
         observacao: dados.observacoes || null,
         outras_observacao: dados.outrasObservacoes || null,
@@ -124,11 +116,10 @@ async function atualizarEquipamentoSupabase(id, dados) {
       quantidade: dados.quantidade,
       stock: dados.stock,
       empresa_data: dados.empresaData || null,
-      estado: null,
-      estado_bom: dados.estadoBom,
-      estado_razoavel: dados.estadoRazoavel,
-      estado_mau: dados.estadoMau,
-      estado_abate: dados.estadoAbate,
+      estado_bom: dados.estadoBom || null,
+      estado_razoavel: dados.estadoRazoavel || null,
+      estado_mau: dados.estadoMau || null,
+      estado_abate: dados.estadoAbate || null,
       local: dados.localizacao,
       observacao: dados.observacoes || null,
       outras_observacao: dados.outrasObservacoes || null,
@@ -294,10 +285,7 @@ function mostrarToast(texto, tipo = "success") {
 
 document.addEventListener("DOMContentLoaded", async () => {
   window.GMApp?.wireRouteLinks();
-  if (!window.GMApp?.hasAccess("admin")) {
-    window.GMApp?.goTo("profReports");
-    return;
-  }
+  if (!window.GMApp?.redirectUnlessRole("admin")) return;
   const form = document.getElementById("equipForm");
   const btnNovo = document.getElementById("btnNovo");
   const btnInventario = document.getElementById("btnInventario");
@@ -313,6 +301,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const inventarioMessage = document.getElementById("inventarioMessage");
   const pesquisaInventario = document.getElementById("pesquisaInventario");
   const filtroLocalSelect = document.getElementById("filtroLocal");
+  const filtroEscolaSelect = document.getElementById("filtroEscola");
   const historicoBody = document.getElementById("historicoBody");
   const pesquisaHistorico = document.getElementById("pesquisaHistorico");
   const manutencaoBody = null;
@@ -336,6 +325,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let categoriasMap = null;
   let historico = carregarHistorico();
   let filtroLocalAtual = "todos";
+  let filtroEscolaAtual = "todos";
   let termoPesquisa = "";
   let termoPesquisaHistorico = "";
   let editingId = null;
@@ -444,6 +434,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  function popularFiltroEscolas(lista = []) {
+    if (!filtroEscolaSelect) return;
+    filtroEscolaSelect.innerHTML = '<option value="todos">Todas as escolas</option>';
+
+    const nomesEscolas = lista
+      .map((item) => String(item.escola || "").trim())
+      .filter((nome) => nome)
+      .filter((value, index, self) => self.indexOf(value) === index)
+      .sort((a, b) => a.localeCompare(b, "pt", { sensitivity: "base" }));
+
+    nomesEscolas.forEach((nome) => {
+      const option = document.createElement("option");
+      option.value = nome;
+      option.textContent = nome;
+      filtroEscolaSelect.appendChild(option);
+    });
+  }
+
   async function refreshInventarioFromDb() {
     try {
       if (typeof supabaseClient !== "undefined") {
@@ -457,7 +465,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       atualizarDashboard(inventario);
-      renderizarInventario(inventario, filtroLocalAtual, termoPesquisa);
+      popularFiltroEscolas(inventario);
+      renderizarInventario(inventario, filtroLocalAtual, termoPesquisa, filtroEscolaAtual);
       // manutenção removida
       atualizarNotificacoesDashboard();
     } catch (e) {
@@ -474,17 +483,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     filtroLocalSelect.addEventListener("change", () => {
       filtroLocalAtual = filtroLocalSelect.value || "todos";
       currentPage = 1; // Reset para a primeira página ao filtrar
-      renderizarInventario(inventario, filtroLocalAtual, termoPesquisa);
+      renderizarInventario(inventario, filtroLocalAtual, termoPesquisa, filtroEscolaAtual);
     });
 
     await popularFiltroLocal();
+  }
+
+  if (filtroEscolaSelect) {
+    filtroEscolaSelect.addEventListener("change", () => {
+      filtroEscolaAtual = filtroEscolaSelect.value || "todos";
+      currentPage = 1; // Reset para a primeira página ao filtrar
+      renderizarInventario(inventario, filtroLocalAtual, termoPesquisa, filtroEscolaAtual);
+    });
   }
 
   if (pesquisaInventario) {
     pesquisaInventario.addEventListener("input", () => {
       termoPesquisa = pesquisaInventario.value.trim();
       currentPage = 1; // Reset para a primeira página ao pesquisar
-      renderizarInventario(inventario, filtroLocalAtual, termoPesquisa);
+      renderizarInventario(inventario, filtroLocalAtual, termoPesquisa, filtroEscolaAtual);
     });
   }
 
@@ -538,7 +555,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   setModoCadastro("adicionar");
 
-  function renderizarInventario(lista, filtroLocal = 'todos', pesquisa = '') {
+  function renderizarInventario(lista, filtroLocal = 'todos', pesquisa = '', filtroEscola = 'todos') {
     if (!inventarioBody) return;
     inventarioBody.innerHTML = "";
 
@@ -547,6 +564,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Filtrar por local se não for 'todos'
     if (filtroLocal !== 'todos') {
       listaFiltrada = listaFiltrada.filter(item => item.localizacao === filtroLocal);
+    }
+
+    // Filtrar por escola se não for 'todos'
+    if (filtroEscola !== 'todos') {
+      listaFiltrada = listaFiltrada.filter(item => String(item.escola || '').trim() === filtroEscola);
     }
 
     // Filtrar pelo termo de pesquisa
@@ -640,6 +662,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderPaginationControls(totalItems);
   }
 
+  function goToPage(page, totalPages) {
+    let nextPage = Number(page);
+    if (!Number.isFinite(nextPage)) return;
+    if (nextPage < 1) nextPage = 1;
+    if (nextPage > totalPages) nextPage = totalPages;
+    if (nextPage === currentPage) return;
+    currentPage = nextPage;
+    renderizarInventario(inventario, filtroLocalAtual, termoPesquisa);
+    document.getElementById("inventario").scrollIntoView({ behavior: "smooth" });
+  }
+
   function renderPaginationControls(totalItems) {
     const container = document.getElementById("paginationControls");
     if (!container) return;
@@ -652,11 +685,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     btnPrev.className = "pagination-btn";
     btnPrev.textContent = "Anterior";
     btnPrev.disabled = currentPage === 1;
-    btnPrev.onclick = () => {
-      currentPage--;
-      renderizarInventario(inventario, filtroLocalAtual, termoPesquisa);
-      document.getElementById("inventario").scrollIntoView({ behavior: "smooth" });
-    };
+    btnPrev.onclick = () => goToPage(currentPage - 1, totalPages);
     container.appendChild(btnPrev);
 
     const info = document.createElement("span");
@@ -664,15 +693,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     info.textContent = `Página ${currentPage} de ${totalPages}`;
     container.appendChild(info);
 
+    const jumpWrapper = document.createElement("span");
+    jumpWrapper.className = "pagination-jump";
+
+    const pageInput = document.createElement("input");
+    pageInput.type = "number";
+    pageInput.min = "1";
+    pageInput.max = String(totalPages);
+    pageInput.value = String(currentPage);
+    pageInput.className = "pagination-input";
+    pageInput.title = "Ir para página";
+    pageInput.setAttribute("aria-label", "Número da página");
+
+    const btnGo = document.createElement("button");
+    btnGo.type = "button";
+    btnGo.className = "pagination-btn";
+    btnGo.textContent = "Ir";
+    btnGo.onclick = () => goToPage(pageInput.value, totalPages);
+
+    jumpWrapper.appendChild(pageInput);
+    jumpWrapper.appendChild(btnGo);
+    container.appendChild(jumpWrapper);
+
     const btnNext = document.createElement("button");
     btnNext.className = "pagination-btn";
     btnNext.textContent = "Próxima";
     btnNext.disabled = currentPage === totalPages;
-    btnNext.onclick = () => {
-      currentPage++;
-      renderizarInventario(inventario, filtroLocalAtual, termoPesquisa);
-      document.getElementById("inventario").scrollIntoView({ behavior: "smooth" });
-    };
+    btnNext.onclick = () => goToPage(currentPage + 1, totalPages);
     container.appendChild(btnNext);
   }
 
@@ -727,47 +774,56 @@ document.addEventListener("DOMContentLoaded", async () => {
   // manutenção removida
 
   function mostrarSecao(sec) {
-    if (sectionDashboard) {
-      sectionDashboard.style.display = sec === "dashboard" ? "" : "none";
-    }
-    if (sectionCadastro) {
-      sectionCadastro.style.display = sec === "cadastro" ? "" : "none";
-    }
-    if (sectionInventario) {
-      sectionInventario.style.display = sec === "inventario" ? "" : "none";
-    }
-    if (sectionHistorico) {
-      sectionHistorico.style.display = sec === "historico" ? "" : "none";
-      if (sec === "historico") {
-        renderizarHistorico(termoPesquisaHistorico);
+    console.log("[GM Desporto] A tentar mostrar secção:", sec);
+    
+    // Tenta obter as referências novamente se necessário
+    const sDash = sectionDashboard || document.getElementById("dashboard");
+    const sCad = sectionCadastro || document.getElementById("cadastro");
+    const sInv = sectionInventario || document.getElementById("inventario");
+    const sHist = sectionHistorico || document.getElementById("historico");
+
+    const sections = {
+      dashboard: sDash,
+      cadastro: sCad,
+      inventario: sInv,
+      historico: sHist
+    };
+
+    Object.keys(sections).forEach((key) => {
+      const el = sections[key];
+      if (el) {
+        el.style.setProperty("display", key === sec ? "block" : "none", "important");
       }
+    });
+
+    if (sec === "historico") {
+      renderizarHistorico(termoPesquisaHistorico);
     }
-    // manutenção removida
-  }
 
-  function mostrarPorHash() {
-    const hash = (window.location.hash || "").replace("#", "");
-    if (hash === "dashboard" || hash === "cadastro" || hash === "inventario" || hash === "historico") {
-      mostrarSecao(hash);
-      return true;
+    // Fechar menu ao mudar de secção no telemóvel
+    if (mainMenu && !mainMenu.classList.contains("hidden")) {
+      mainMenu.classList.add("hidden");
     }
-    return false;
+    const toggleBtn = document.getElementById("btnMenuToggle");
+    if (toggleBtn) {
+      toggleBtn.classList.remove("is-menu-open");
+      toggleBtn.setAttribute("aria-expanded", "false");
+    }
   }
 
-  // Mostrar secção baseada no #hash (ex.: principal.html#inventario)
-  if (!mostrarPorHash()) {
-    mostrarSecao("dashboard");
+  function syncPrincipalFromHash() {
+    const raw = (window.location.hash || "").replace(/^#/, "").trim().toLowerCase();
+    const allowed = ["dashboard", "cadastro", "inventario", "historico"];
+    const sec = allowed.includes(raw) ? raw : "dashboard";
+    mostrarSecao(sec);
+    window.GMApp?.markActiveLink?.();
   }
-
-  window.addEventListener("hashchange", () => {
-    mostrarPorHash();
-  });
 
   if (form) {
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       if (!validarFormulario(form)) {
-        mostrarMensagem("error", "Verifique os campos obrigatórios.");
+        mostrarMensagem("error", "Verifique os campos assinalados.");
         return;
       }
 
@@ -853,6 +909,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           limparErros();
 
           mostrarSecao("inventario");
+          if (window.location.hash !== "#inventario") {
+            window.location.hash = "inventario";
+          }
           if (inventarioMessage) {
             inventarioMessage.textContent = "";
           }
@@ -885,15 +944,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       link.addEventListener("click", (e) => {
         const sec = link.dataset.section;
         if (!sec) return;
-        if (sec === "dashboard" || sec === "cadastro" || sec === "inventario" || sec === "historico") {
+
+        if (["dashboard", "cadastro", "inventario", "historico"].includes(sec)) {
           e.preventDefault();
-          if (sec === "cadastro" && form) {
-            form.reset();
-            limparErros();
-            editingId = null;
-            setModoCadastro("adicionar");
-          }
           mostrarSecao(sec);
+          const next = `#${sec}`;
+          if (window.location.hash !== next) {
+            window.location.hash = sec;
+          } else {
+            window.GMApp?.markActiveLink?.();
+          }
         }
       });
     });
@@ -902,6 +962,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (btnInventario) {
     btnInventario.addEventListener("click", () => {
       mostrarSecao("inventario");
+      if (window.location.hash !== "#inventario") {
+        window.location.hash = "inventario";
+      }
     });
   }
 
@@ -969,6 +1032,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         form.outrasObservacoes.value = item.outrasObservacoes || "";
         limparErros();
         mostrarSecao("cadastro");
+        if (window.location.hash !== "#cadastro") {
+          window.location.hash = "cadastro";
+        }
         setModoCadastro("editar");
       }
     });
@@ -977,5 +1043,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
   // listeners de manutenção removidos
-});
 
+  window.addEventListener("hashchange", () => {
+    syncPrincipalFromHash();
+  });
+  syncPrincipalFromHash();
+  requestAnimationFrame(() => {
+    syncPrincipalFromHash();
+    requestAnimationFrame(syncPrincipalFromHash);
+  });
+  window.addEventListener("load", syncPrincipalFromHash);
+  window.addEventListener("pageshow", syncPrincipalFromHash);
+});

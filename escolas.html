@@ -6,7 +6,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GM Desporto — Admin | Locais</title>
+    <title>GM Desporto — Admin | Escolas</title>
     <link rel="stylesheet" href="styles.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
@@ -55,44 +55,44 @@
       </nav>
 
       <main class="content content-main">
-        <section class="card card-wide" id="locaisSection">
+        <section class="card card-wide" id="escolasSection">
           <div class="card-header card-header-left" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
-              <h2 class="card-title card-title-small">Gerenciar Locais</h2>
+              <h2 class="card-title card-title-small">Gerenciar Escolas</h2>
               <p class="card-subtitle">
-                Adicione, edite ou remova locais da base de dados.
+                Adicione, edite ou remova escolas da base de dados.
               </p>
             </div>
-            <button type="button" class="btn-primary" id="btnNovoLocal" style="white-space: nowrap;">
-              Adicionar Local
+            <button type="button" class="btn-primary" id="btnNovaEscola" style="white-space: nowrap;">
+              Adicionar Escola
             </button>
           </div>
 
-          <!-- Pesquisa de Locais -->
+          <!-- Pesquisa de Escolas -->
           <div class="form-group" style="margin-bottom: 1rem;">
-            <label for="pesquisaLocais">Pesquisar Locais:</label>
+            <label for="pesquisaEscolas">Pesquisar Escolas:</label>
             <input
-              id="pesquisaLocais"
-              name="pesquisaLocais"
+              id="pesquisaEscolas"
+              name="pesquisaEscolas"
               type="text"
-              placeholder="Pesquisar por nome ou descrição..."
+              placeholder="Pesquisar por sigla ou nome..."
             />
           </div>
 
-          <!-- Tabela de Locais -->
+          <!-- Tabela de Escolas -->
           <div class="inventory-wrapper">
-            <table class="inventory-table locais-table">
+            <table class="inventory-table escolas-table">
               <thead>
                 <tr>
-                  <th>Nome</th>
-                  <th>Descrição</th>
+                  <th>Sigla</th>
+                  <th>Nome da Escola</th>
                   <th>Última alteração</th>
                   <th>Ações</th>
                 </tr>
               </thead>
-              <tbody id="locaisTableBody">
+              <tbody id="escolasTableBody">
                 <tr class="inventory-empty-row">
-                  <td colspan="4">Nenhum local registado.</td>
+                  <td colspan="4">Nenhuma escola registada.</td>
                 </tr>
               </tbody>
             </table>
@@ -108,56 +108,56 @@
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <!-- Modal Adicionar/Editar Local -->
-    <div class="modal-overlay hidden" id="modalLocal">
+    <!-- Modal Adicionar/Editar Escola -->
+    <div class="modal-overlay hidden" id="modalEscola">
       <div class="modal" style="max-width: 500px;">
         <div class="modal-header">
-          <h3 id="modalLocalTitle">Adicionar Local</h3>
-          <button type="button" class="modal-close" id="btnFecharModalLocal">✖</button>
+          <h3 id="modalEscolaTitle">Adicionar Escola</h3>
+          <button type="button" class="modal-close" id="btnFecharModalEscola">✖</button>
         </div>
-        <p class="modal-subtitle" id="modalLocalSubtitle">
-          Preencha os dados do local.
+        <p class="modal-subtitle" id="modalEscolaSubtitle">
+          Preencha os dados da escola.
         </p>
 
-        <form id="locaisForm" class="form-group" style="margin-top: 16px;">
-          <input type="hidden" id="localId" />
+        <form id="escolasForm" class="form-group" style="margin-top: 16px;">
+          <input type="hidden" id="escolaId" />
           <div class="form-field" style="margin-bottom: 12px;">
-            <label for="localNome">Nome do Local *</label>
+            <label for="escolaSigla">Sigla (ex: GM) *</label>
             <input
               type="text"
-              id="localNome"
-              placeholder="Ex: Arr1, G1, G2"
+              id="escolaSigla"
+              placeholder="Ex: GM, MR, ETC"
               required
             />
-            <span class="input-error" id="localNomeError"></span>
+            <span class="input-error" id="escolaSiglaError"></span>
           </div>
 
           <div class="form-field" style="margin-bottom: 16px;">
-            <label for="localDescricao">Descrição</label>
+            <label for="escolaNome">Nome Completo</label>
             <input
               type="text"
-              id="localDescricao"
-              placeholder="Ex: Armazém 1, Ginásio 1"
+              id="escolaNome"
+              placeholder="Ex: Escola Dr. Ginestal Machado"
             />
-            <span class="input-error" id="localDescricaoError"></span>
+            <span class="input-error" id="escolaNomeError"></span>
           </div>
 
           <div class="form-actions" style="justify-content: flex-end;">
-            <button type="button" class="btn-ghost" id="btnCancelarLocal">
+            <button type="button" class="btn-ghost" id="btnCancelarEscola">
               Cancelar
             </button>
-            <button type="submit" class="btn-primary" id="btnSubmitLocal">
+            <button type="submit" class="btn-primary" id="btnSubmitEscola">
               Guardar
             </button>
           </div>
-          <span class="input-error" id="locaisFormError"></span>
+          <span class="input-error" id="escolasFormError"></span>
         </form>
       </div>
     </div>
     <script src="supabase.js"></script>
     <script src="supabaseClient.js?v=3"></script>
     <script src="appShell.js?v=3"></script>
-    <script src="locais.js?v=3"></script>
+    <script src="escolas.js?v=3"></script>
     <script src="customSelect.js?v=3"></script>
   </body>
 </html>

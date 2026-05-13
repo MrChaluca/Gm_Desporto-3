@@ -203,10 +203,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.GMApp?.wireRouteLinks();
   window.GMApp?.setupMenuToggle("btnMenuToggle", "mainMenu");
 
-  if (!window.GMApp?.hasAccess("admin")) {
-    window.GMApp?.goTo("profReports");
-    return;
-  }
+  if (!window.GMApp?.redirectUnlessRole("admin")) return;
 
   if (typeof supabaseClient === "undefined") {
     mostrarToast("Supabase não disponível.", "error");

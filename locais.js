@@ -241,10 +241,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.GMApp?.setupMenuToggle('btnMenuToggle', 'mainMenu');
 
   // Se não for admin, redireciona
-  if (!window.GMApp?.hasAccess('admin')) {
-    window.location.href = 'index.html';
-    return;
-  }
+  if (!window.GMApp?.redirectUnlessRole('admin')) return;
 
   // Pesquisa
   const pesquisaLocais = document.getElementById('pesquisaLocais');

@@ -1,0 +1,141 @@
+<!-- Página de teste para diagnosticar conexão ao Supabase -->
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teste Supabase</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    .btn {
+      padding: 10px 20px;
+      margin: 10px 5px 10px 0;
+      background: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #0052a3;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .error {
+      background: #ffe0e0;
+      color: #cc0000;
+    }
+    .success {
+      background: #e0ffe0;
+      color: #006600;
+    }
+  </style>
+</head>
+<body>
+  <h1>Teste de Conexão ao Supabase</h1>
+  <button class="btn" onclick="testSupabase()">Testar Supabase</button>
+  <button class="btn" onclick="testEquipamentos()">Carregar Equipamentos</button>
+  <button class="btn" onclick="clearResults()">Limpar Resultados</button>
+
+  <div id="results"></div>
+
+  <script src="supabase.js"></script>
+  <script src="supabaseClient.js?v=3"></script>
+
+  <script>
+    function log(message, type = 'info') {
+      const resultsDiv = document.getElementById('results');
+      const resultItem = document.createElement('div');
+      resultItem.className = 'result ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
+      resultItem.innerHTML = `<strong>${type.toUpperCase()}:</strong> <pre>${typeof message === 'object' ? JSON.stringify(message, null, 2) : message}</pre>`;
+      resultsDiv.appendChild(resultItem);
+      console.log(`[${type}]`, message);
+    }
+
+    function clearResults() {
+      document.getElementById('results').innerHTML = '';
+    }
+
+    async function testSupabase() {
+      try {
+        log('Iniciando teste...', 'info');
+
+        if (typeof supabaseClient === 'undefined') {
+          log('supabaseClient NÃO está definido!', 'error');
+          return;
+        }
+
+        log('supabaseClient está definido ✓', 'success');
+
+        // Teste 1: Tentar SELECT na tabela equipamentos
+        log('A testar SELECT em equipamentos...', 'info');
+        const { data, error } = await supabaseClient
+          .from('equipamentos')
+          .select('id, descricao, quantidade')
+          .limit(1);
+
+        if (error) {
+          log(`Erro ao fazer SELECT: ${error.message}`, 'error');
+          log(error, 'error');
+          return;
+        }
+
+        log(`SELECT bem-sucedido! Encontrados ${data ? data.length : 0} registos.`, 'success');
+        log(data, 'success');
+      } catch (err) {
+        log(`Erro inesperado: ${err.message}`, 'error');
+        log(err, 'error');
+      }
+    }
+
+    async function testEquipamentos() {
+      try {
+        log('A carregar equipamentos...', 'info');
+
+        if (typeof supabaseClient === 'undefined') {
+          log('supabaseClient NÃO está definido!', 'error');
+          return;
+        }
+
+        const { data, error } = await supabaseClient
+          .from('equipamentos')
+          .select('id, descricao, local, quantidade, escola')
+          .order('descricao')
+          .limit(10);
+
+        if (error) {
+          log(`Erro: ${error.message}`, 'error');
+          log(error, 'error');
+          return;
+        }
+
+        log(`Equipamentos carregados: ${data ? data.length : 0}`, 'success');
+        log(data, 'success');
+      } catch (err) {
+        log(`Erro inesperado: ${err.message}`, 'error');
+        log(err, 'error');
+      }
+    }
+
+    // Auto-test ao carregar a página
+    window.addEventListener('load', () => {
+      log('Página carregada. supabaseClient disponível: ' + (typeof supabaseClient !== 'undefined'), 'info');
+    });
+  </script>
+</body>
+</html>

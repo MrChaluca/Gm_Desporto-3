@@ -65,10 +65,22 @@ function renderizarLocais() {
   const tbody = document.getElementById('locaisTableBody');
   if (!tbody) return;
 
+  if (typeof supabaseClient === 'undefined') {
+    tbody.innerHTML = `
+      <tr class="inventory-empty-row">
+        <td colspan="3" style="color: var(--wine-light); font-weight: 600;">
+          <i class="error-icon">⚠️</i> Erro de Ligação: O cliente da base de dados não foi inicializado.
+          <br><small>Verifique se está a usar um servidor (http://) e não abrindo o ficheiro diretamente.</small>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
   if (locaisCache.length === 0) {
     tbody.innerHTML = `
       <tr class="inventory-empty-row">
-        <td colspan="3">Nenhum local registado.</td>
+        <td colspan="3">Nenhum local registado ou à espera de dados...</td>
       </tr>
     `;
     return;
@@ -112,10 +124,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.GMApp?.wireRouteLinks();
 
   // Se não tiver acesso professor, redireciona
-  if (!window.GMApp?.hasAccess('professor')) {
-    window.GMApp?.goTo('adminInventory');
-    return;
-  }
+  if (!window.GMApp?.redirectUnlessRole('professor')) return;
 
   // Setup menu
   const btnMenuToggleProf = document.getElementById('btnMenuToggleProf');

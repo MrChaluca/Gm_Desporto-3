@@ -9,8 +9,7 @@ function setUserEmail(email) {
 function validarSenhaEspecial(email, senha) {
   const safeEmail = String(email || "").trim().toLowerCase();
   const safeSenha = String(senha || "");
-  if (safeEmail !== "profadimin@gmail.com") return true;
-  return safeSenha === "124567";
+  return safeEmail === "profadimin@gmail.com" && safeSenha === "123456";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -24,35 +23,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const registroMsg = document.getElementById("registroMessage");
   const recoverMsg = document.getElementById("recoverMessage");
   const loginTitle = document.getElementById("loginTitle");
-  const tabProfessor = document.getElementById("tabProfessor");
-  const tabAdmin = document.getElementById("tabAdmin");
-  const loginTabs = document.querySelector(".login-tabs");
   const btnToggleRegistro = document.getElementById("btnToggleRegistro");
   const btnToggleRecover = document.getElementById("btnToggleRecover");
 
-  let selectedRole = "professor";
   let currentMode = "login";
 
-  function setTab(role) {
-    selectedRole = role;
-    const isProf = role === "professor";
 
-    if (tabProfessor) {
-      tabProfessor.classList.toggle("active", isProf);
-      tabProfessor.setAttribute("aria-selected", String(isProf));
-    }
-    if (tabAdmin) {
-      tabAdmin.classList.toggle("active", !isProf);
-      tabAdmin.setAttribute("aria-selected", String(!isProf));
-    }
-    if (loginTitle) {
-      loginTitle.textContent = isProf ? "ACESSO PROFESSOR" : "ACESSO ADMIN";
-    }
-    if (msg) {
-      msg.textContent = "";
-      msg.className = "form-message";
-    }
-  }
 
   function updateMode(mode) {
     currentMode = mode;
@@ -63,12 +39,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (form) form.style.display = isLogin ? "" : "none";
     if (registroForm) registroForm.style.display = isRegistro ? "" : "none";
     if (recoverForm) recoverForm.style.display = isRecover ? "" : "none";
-    if (loginTabs) loginTabs.style.display = isLogin ? "" : "none";
 
     if (loginTitle) {
       if (isRegistro) loginTitle.textContent = "REGISTO";
       else if (isRecover) loginTitle.textContent = "RECUPERAR CONTA";
-      else loginTitle.textContent = selectedRole === "professor" ? "ACESSO PROFESSOR" : "ACESSO ADMIN";
+      else loginTitle.textContent = "ACESSO";
     }
 
     if (btnToggleRegistro) {
@@ -101,11 +76,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!form || !userInput || !passInput) return;
 
-  if (tabProfessor) tabProfessor.addEventListener("click", () => setTab("professor"));
-  if (tabAdmin) tabAdmin.addEventListener("click", () => setTab("admin"));
   if (btnToggleRegistro) btnToggleRegistro.addEventListener("click", toggleRegistro);
   if (btnToggleRecover) btnToggleRecover.addEventListener("click", toggleRecover);
-  setTab("professor");
   updateMode("login");
 
   async function isAdminByEmail(email) {
@@ -127,33 +99,74 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // Modo prático temporário: sem validação de conta/palavra-passe.
-    // A aba selecionada define o tipo de acesso.
     const emailDigitado = userInput.value.trim().toLowerCase();
     const senhaDigitada = passInput.value || "";
-    const emailFallback =
-      selectedRole === "admin" ? "admin@gmdesporto.pt" : "prof@gmdesporto.pt";
-    const emailFinal = emailDigitado || emailFallback;
 
-    if (!validarSenhaEspecial(emailFinal, senhaDigitada)) {
+    if (!emailDigitado || !senhaDigitada) {
       if (msg) {
-        msg.textContent = "Palavra-passe incorreta para esta conta.";
+        msg.textContent = "Preencha todos os campos.";
         msg.className = "form-message error";
       }
       return;
     }
 
-    const isDualByEmail = emailFinal === "profadimin@gmail.com";
-    const isAdminAccount = selectedRole === "admin" || (await isAdminByEmail(emailFinal));
-    window.GMApp?.setDualRole(Boolean(isDualByEmail || isAdminAccount));
+    if (msg) {
+      msg.textContent = "A iniciar sessão...";
+      msg.className = "form-message";
+    }
 
-    setRole(selectedRole);
-    setUserEmail(emailFinal);
+    // 1. Bypass para a conta de Admin fixo
+    if (validarSenhaEspecial(emailDigitado, senhaDigitada)) {
+      window.GMApp?.setDualRole(true);
+      setRole("admin");
+      setUserEmail(emailDigitado);
+      window.location.href = window.GMApp?.routes?.adminInventory || "principal.html";
+      return;
+    }
 
-    if (selectedRole === "admin") {
-      window.GMApp?.goTo("adminInventory");
-    } else {
-      window.GMApp?.goTo("profReports");
+    // 2. Autenticação real pelo Supabase Auth
+    if (typeof supabaseClient === "undefined") {
+      if (msg) {
+        msg.textContent = "Erro de conexão à base de dados.";
+        msg.className = "form-message error";
+      }
+      return;
+    }
+
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: emailDigitado,
+        password: senhaDigitada,
+      });
+
+      if (error) {
+        if (msg) {
+          msg.textContent = "Acesso negado: Email ou palavra-passe incorretos.";
+          msg.className = "form-message error";
+        }
+        return;
+      }
+
+      // 3. Login com sucesso. Vamos verificar a Role na tabela membros
+      const isAdminFromDb = await isAdminByEmail(emailDigitado);
+      
+      const userRole = isAdminFromDb ? "admin" : "professor";
+      window.GMApp?.setDualRole(isAdminFromDb);
+      setRole(userRole);
+      setUserEmail(emailDigitado);
+
+      const dest =
+        userRole === "admin"
+          ? window.GMApp?.routes?.adminInventory || "principal.html"
+          : window.GMApp?.routes?.profReports || "professores.html";
+      window.location.href = dest;
+
+    } catch (err) {
+      console.error(err);
+      if (msg) {
+        msg.textContent = "Ocorreu um erro inesperado no login.";
+        msg.className = "form-message error";
+      }
     }
   });
 

@@ -13,16 +13,22 @@ try {
   if (typeof window === "undefined") {
     // ignore
   } else if (window.location?.protocol === "file:") {
-    console.error("[GM Desporto] Supabase bloqueado em file://.", __SUPABASE_SETUP_HELP__);
+    const errorMsg = "[GM Desporto] Aviso: O site foi aberto via file://. O Supabase pode ter limitações de segurança (CORS/Storage). Recomenda-se o uso de um servidor local.";
+    console.warn(errorMsg);
+    // Inicializar mesmo assim para tentar funcionar
+    if (window.supabase?.createClient) {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
   } else if (!window.supabase?.createClient) {
     console.error(
-      "[GM Desporto] SDK do Supabase não carregou. Verifique a tag do CDN antes de 'supabaseClient.js'."
+      "[GM Desporto] SDK do Supabase não carregou. Verifique a sua ligação à internet ou se a tag do CDN está correta."
     );
   } else {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log("[GM Desporto] Supabase inicializado com sucesso.");
   }
 } catch (e) {
-  console.error("[GM Desporto] Falha ao inicializar Supabase.", e);
+  console.error("[GM Desporto] Falha crítica ao inicializar Supabase.", e);
 }
 
 // Função de ajuda para testes rápidos no browser (F12 → Console)

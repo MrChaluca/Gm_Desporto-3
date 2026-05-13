@@ -1,9 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
   window.GMApp?.wireRouteLinks();
-  if (!window.GMApp?.hasAccess("admin")) {
-    window.GMApp?.goTo("profReports");
-    return;
-  }
+  if (!window.GMApp?.redirectUnlessRole("admin")) return;
 
   window.GMApp?.setupMenuToggle("btnMenuToggle", "mainMenu");
 
@@ -29,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       const { data, error } = await supabaseClient
         .from("equipamentos")
-        .select("id, descricao, stock, quantidade, edf_de")
+        .select("id, descricao, stock, quantidade, edf_de, estado_bom, estado_razoavel, estado_mau, estado_abate")
         .order("descricao");
 
       if (error) throw error;
@@ -156,6 +153,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const equipId = abateForm.equipamentoId.value;
     const quantidade = parseInt(abateForm.quantidade.value, 10);
+    const tipoRetirada = abateForm.tipoRetirada?.value === "quantidade" ? "quantidade" : "stock";
     const motivo = abateForm.motivo.value.trim();
 
     let valido = true;
@@ -171,8 +169,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!valido) return;
 
     const equipamento = equipamentosCache.find(eq => String(eq.id) === String(equipId));
-    if (equipamento && quantidade > equipamento.stock) {
-      document.querySelector('[data-error-for="quantidade"]').textContent = `Apenas tem ${equipamento.stock} em stock. Não pode abater mais do que existe.`;
+    const maxDisponivel = equipamento
+      ? Number(tipoRetirada === "quantidade" ? equipamento.quantidade : equipamento.stock)
+      : 0;
+    if (equipamento && quantidade > maxDisponivel) {
+      const alvo = tipoRetirada === "quantidade" ? "na quantidade total" : "em stock";
+      document.querySelector('[data-error-for="quantidade"]').textContent = `Apenas tem ${maxDisponivel} ${alvo}. Não pode abater mais do que existe.`;
       return;
     }
 
@@ -191,17 +193,29 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (insertError) throw insertError;
 
-      // 2. Subtrair stock e quantidade total do equipamento
+      // 2. Subtrair no campo escolhido
       if (equipamento) {
-        const novoStock = Math.max(0, equipamento.stock - quantidade);
-        const novaQtd = Math.max(0, equipamento.quantidade - quantidade);
+        const novaQtd =
+          tipoRetirada === "quantidade"
+            ? Math.max(0, Number(equipamento.quantidade || 0) - quantidade)
+            : Number(equipamento.quantidade || 0);
+        const novoStock =
+          tipoRetirada === "stock"
+            ? Math.max(0, Number(equipamento.stock || 0) - quantidade)
+            : Math.min(Number(equipamento.stock || 0), novaQtd);
+        const patch = {
+          stock: novoStock,
+          quantidade: novaQtd,
+        };
+
+        patch.estado_bom = 0;
+        patch.estado_razoavel = 0;
+        patch.estado_mau = 0;
+        patch.estado_abate = 0;
 
         const { error: updateError } = await supabaseClient
           .from("equipamentos")
-          .update({
-            stock: novoStock,
-            quantidade: novaQtd
-          })
+          .update(patch)
           .eq("id", equipId);
 
         if (updateError) throw updateError;

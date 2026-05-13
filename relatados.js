@@ -27,21 +27,51 @@ async function atualizarEstadoRelato(relId, patch) {
   if (error) throw error;
 }
 
-async function executarRetirarDoStock(payload) {
-  const { relId, equipId, qtd } = payload;
+function buildPatchRetirada(eq, qtd, modo) {
+  const atualQtd = Number(eq.quantidade || 0);
+  const atualStock = Number(eq.stock || 0);
+  const tirar = Number(qtd || 0);
+  const patch = {};
+
+  if (!Number.isFinite(tirar) || tirar <= 0) {
+    throw new Error("Quantidade inválida.");
+  }
+
+  if (modo === "stock") {
+    if (tirar > atualStock) {
+      throw new Error(`Só existem ${atualStock} unidade(s) em stock.`);
+    }
+    patch.stock = Math.max(0, atualStock - tirar);
+  } else {
+    if (tirar > atualQtd) {
+      throw new Error(`Só existem ${atualQtd} unidade(s) na quantidade total.`);
+    }
+    patch.quantidade = Math.max(0, atualQtd - tirar);
+    patch.stock = Math.min(atualStock, patch.quantidade);
+  }
+
+  patch.estado_bom = 0;
+  patch.estado_razoavel = 0;
+  patch.estado_mau = 0;
+  patch.estado_abate = 0;
+
+  return patch;
+}
+
+async function executarRetiradaRelato(payload) {
+  const { relId, equipId, qtd, modo } = payload;
   const { data: eq, error } = await supabaseClient
     .from("equipamentos")
-    .select("quantidade")
+    .select("quantidade,stock,estado_bom,estado_razoavel,estado_mau,estado_abate")
     .eq("id", equipId)
     .single();
   if (error) throw error;
 
-  const tirar = Number(qtd);
-  const novaQtd = Math.max(0, Number(eq.quantidade) - tirar);
+  const patch = buildPatchRetirada(eq, qtd, modo);
 
   const { error: errUp } = await supabaseClient
     .from("equipamentos")
-    .update({ quantidade: novaQtd })
+    .update(patch)
     .eq("id", equipId);
   if (errUp) throw errUp;
 
@@ -153,11 +183,22 @@ async function carregarRelatados() {
       const btnRet = document.createElement("button");
       btnRet.type = "button";
       btnRet.className = "btn-secondary small";
-      btnRet.textContent = "Retirar do stock";
+      btnRet.textContent = "Retirar stock";
       btnRet.dataset.acao = "retirar";
+      btnRet.dataset.modo = "stock";
       btnRet.dataset.relId = String(r.id);
       btnRet.dataset.equipId = String(eqId);
       btnRet.dataset.qtd = String(r.quantidade);
+
+      const btnRetQtd = document.createElement("button");
+      btnRetQtd.type = "button";
+      btnRetQtd.className = "btn-secondary small";
+      btnRetQtd.textContent = "Retirar qtd.";
+      btnRetQtd.dataset.acao = "retirar";
+      btnRetQtd.dataset.modo = "quantidade";
+      btnRetQtd.dataset.relId = String(r.id);
+      btnRetQtd.dataset.equipId = String(eqId);
+      btnRetQtd.dataset.qtd = String(r.quantidade);
 
       const btnRem = document.createElement("button");
       btnRem.type = "button";
@@ -167,6 +208,7 @@ async function carregarRelatados() {
       btnRem.dataset.relId = String(r.id);
 
       wrap.appendChild(btnRet);
+      wrap.appendChild(btnRetQtd);
       wrap.appendChild(btnRem);
       td5.appendChild(wrap);
     } else {
@@ -203,10 +245,7 @@ async function carregarRelatados() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   window.GMApp?.wireRouteLinks();
-  if (!window.GMApp?.hasAccess("admin")) {
-    window.GMApp?.goTo("profReports");
-    return;
-  }
+  if (!window.GMApp?.redirectUnlessRole("admin")) return;
 
   window.GMApp?.setupMenuToggle("btnMenuToggle", "mainMenu");
 
@@ -256,17 +295,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       const relId = Number(btn.dataset.relId);
       const equipId = Number(btn.dataset.equipId);
       const qtd = Number(btn.dataset.qtd);
+      const modo = btn.dataset.modo === "quantidade" ? "quantidade" : "stock";
       const nome = btn.closest("tr")?.children[1]?.textContent?.trim() || "equipamento";
 
       if (!relId) return;
 
       if (acao === "retirar") {
         if (!equipId || !qtd) return;
-        const payload = { relId, equipId, qtd };
+        const payload = { relId, equipId, qtd, modo };
+        const alvo = modo === "quantidade" ? "quantidade total" : "stock";
         abrirModalConfirm(
-          "Retirar do stock",
-          `Tem a certeza que quer retirar ${qtd} unidade(s) do stock total de «${nome}»? Esta quantidade será descontada do inventário.`,
-          () => executarRetirarDoStock(payload)
+          modo === "quantidade" ? "Retirar da quantidade" : "Retirar do stock",
+          `Tem a certeza que quer retirar ${qtd} unidade(s) da ${alvo} de "${nome}"?`,
+          () => executarRetiradaRelato(payload)
         );
       } else if (acao === "remover-relato") {
         abrirModalConfirm(

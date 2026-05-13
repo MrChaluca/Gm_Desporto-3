@@ -51,6 +51,32 @@ window.GMApp = (() => {
     mountProfileButton();
   }
 
+  /**
+   * Evita ciclo principal.html ↔ professores.html quando não há sessão
+   * (email/papel em falta): envia para index em vez de alternar entre áreas.
+   */
+  function redirectUnlessRole(requiredRole) {
+    if (hasAccess(requiredRole)) return true;
+    if (requiredRole === "admin") {
+      if (hasAccess("professor")) {
+        goTo("profReports");
+        return false;
+      }
+      window.location.href = routes.login;
+      return false;
+    }
+    if (requiredRole === "professor") {
+      if (hasAccess("admin")) {
+        goTo("adminInventory");
+        return false;
+      }
+      window.location.href = routes.login;
+      return false;
+    }
+    window.location.href = routes.login;
+    return false;
+  }
+
   function requireRole(expectedRole, redirectRouteKey) {
     if (!hasAccess(expectedRole)) {
       goTo(redirectRouteKey);
@@ -239,6 +265,8 @@ window.GMApp = (() => {
     getCurrentRole,
     requireRole,
     redirectIfRole,
+    redirectUnlessRole,
     wireRouteLinks,
+    markActiveLink,
   };
 })();

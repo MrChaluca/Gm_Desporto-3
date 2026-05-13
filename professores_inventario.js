@@ -1,5 +1,6 @@
 let equipamentosCache = [];
 let localFiltroAtual = 'todos';
+let escolaFiltroAtual = 'todos';
 let termoPesquisaAtual = '';
 
 // Paginação
@@ -59,11 +60,15 @@ async function carregarLocaisSupabase() {
   return data || [];
 }
 
-function filtrarEquipamentos(local = 'todos', termoPesquisa = '') {
+function filtrarEquipamentos(local = 'todos', termoPesquisa = '', filtroEscola = 'todos') {
   let lista = equipamentosCache;
 
   if (local !== 'todos') {
     lista = lista.filter(eq => eq.local === local);
+  }
+
+  if (filtroEscola !== 'todos') {
+    lista = lista.filter(eq => String(eq.escola || '').trim() === filtroEscola);
   }
 
   const termo = String(termoPesquisa || '').trim().toLowerCase();
@@ -95,11 +100,11 @@ function mapEstadoLegado(eq, nomeEstado) {
   return eq.estado === nomeEstado ? (eq.quantidade || 0) : '-';
 }
 
-function renderizarEquipamentos(local = 'todos', termoPesquisa = '') {
+function renderizarEquipamentos(local = 'todos', termoPesquisa = '', filtroEscola = 'todos') {
   const tbody = document.getElementById('inventarioProfBody');
   if (!tbody) return;
 
-  const equipamentos = filtrarEquipamentos(local, termoPesquisa);
+  const equipamentos = filtrarEquipamentos(local, termoPesquisa, filtroEscola);
 
   if (equipamentos.length === 0) {
     const temPesquisa = String(termoPesquisa || '').trim().length > 0;
@@ -149,6 +154,17 @@ function renderizarEquipamentos(local = 'todos', termoPesquisa = '') {
   renderPaginationControlsProf(totalItems);
 }
 
+function goToPageProf(page, totalPages) {
+  let nextPage = Number(page);
+  if (!Number.isFinite(nextPage)) return;
+  if (nextPage < 1) nextPage = 1;
+  if (nextPage > totalPages) nextPage = totalPages;
+  if (nextPage === currentPage) return;
+  currentPage = nextPage;
+  renderizarEquipamentos(localFiltroAtual, termoPesquisaAtual, escolaFiltroAtual);
+  document.getElementById("inventarioProf").scrollIntoView({ behavior: "smooth" });
+}
+
 function renderPaginationControlsProf(totalItems) {
   const container = document.getElementById("paginationControls");
   if (!container) return;
@@ -161,11 +177,7 @@ function renderPaginationControlsProf(totalItems) {
   btnPrev.className = "pagination-btn";
   btnPrev.textContent = "Anterior";
   btnPrev.disabled = currentPage === 1;
-  btnPrev.onclick = () => {
-    currentPage--;
-    renderizarEquipamentos(localFiltroAtual, termoPesquisaAtual);
-    document.getElementById("inventarioProf").scrollIntoView({ behavior: "smooth" });
-  };
+  btnPrev.onclick = () => goToPageProf(currentPage - 1, totalPages);
   container.appendChild(btnPrev);
 
   const info = document.createElement("span");
@@ -173,15 +185,33 @@ function renderPaginationControlsProf(totalItems) {
   info.textContent = `Página ${currentPage} de ${totalPages}`;
   container.appendChild(info);
 
+  const jumpWrapper = document.createElement("span");
+  jumpWrapper.className = "pagination-jump";
+
+  const pageInput = document.createElement("input");
+  pageInput.type = "number";
+  pageInput.min = "1";
+  pageInput.max = String(totalPages);
+  pageInput.value = String(currentPage);
+  pageInput.className = "pagination-input";
+  pageInput.title = "Ir para página";
+  pageInput.setAttribute("aria-label", "Número da página");
+
+  const btnGo = document.createElement("button");
+  btnGo.type = "button";
+  btnGo.className = "pagination-btn";
+  btnGo.textContent = "Ir";
+  btnGo.onclick = () => goToPageProf(pageInput.value, totalPages);
+
+  jumpWrapper.appendChild(pageInput);
+  jumpWrapper.appendChild(btnGo);
+  container.appendChild(jumpWrapper);
+
   const btnNext = document.createElement("button");
   btnNext.className = "pagination-btn";
   btnNext.textContent = "Próxima";
   btnNext.disabled = currentPage === totalPages;
-  btnNext.onclick = () => {
-    currentPage++;
-    renderizarEquipamentos(localFiltroAtual, termoPesquisaAtual);
-    document.getElementById("inventarioProf").scrollIntoView({ behavior: "smooth" });
-  };
+  btnNext.onclick = () => goToPageProf(currentPage + 1, totalPages);
   container.appendChild(btnNext);
 }
 
@@ -226,14 +256,35 @@ async function popularFiltroLocalProfessor() {
   });
 }
 
+async function popularFiltroEscolaProfessor() {
+  const filtroEscola = document.getElementById('filtroEscolaProf');
+  if (!filtroEscola) return;
+
+  filtroEscola.innerHTML = '<option value="todos">Todas as escolas</option>';
+
+  if (equipamentosCache.length === 0) {
+    await carregarEquipamentosSupabase();
+  }
+
+  const nomesEscolas = (equipamentosCache || [])
+    .map(item => item.escola)
+    .filter(escola => escola && escola.trim())
+    .filter((value, index, self) => self.indexOf(value) === index)
+    .sort();
+
+  nomesEscolas.forEach(escola => {
+    const option = document.createElement('option');
+    option.value = escola;
+    option.textContent = escola;
+    filtroEscola.appendChild(option);
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   window.GMApp?.wireRouteLinks();
 
   // Se não tiver acesso professor, redireciona
-  if (!window.GMApp?.hasAccess('professor')) {
-    window.GMApp?.goTo('adminInventory');
-    return;
-  }
+  if (!window.GMApp?.redirectUnlessRole('professor')) return;
 
   // Setup botões de menu
   const btnMenuToggleProf = document.getElementById('btnMenuToggleProf');
@@ -258,7 +309,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     filtroLocalProf.addEventListener('change', () => {
       localFiltroAtual = filtroLocalProf.value || 'todos';
       currentPage = 1; // Reset para a primeira página ao filtrar
-      renderizarEquipamentos(localFiltroAtual, termoPesquisaAtual);
+      renderizarEquipamentos(localFiltroAtual, termoPesquisaAtual, escolaFiltroAtual);
+    });
+  }
+
+  const filtroEscolaProf = document.getElementById('filtroEscolaProf');
+  if (filtroEscolaProf) {
+    filtroEscolaProf.addEventListener('change', () => {
+      escolaFiltroAtual = filtroEscolaProf.value || 'todos';
+      currentPage = 1; // Reset para a primeira página ao filtrar
+      renderizarEquipamentos(localFiltroAtual, termoPesquisaAtual, escolaFiltroAtual);
     });
   }
 
@@ -266,15 +326,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     pesquisaInventarioProf.addEventListener('input', () => {
       termoPesquisaAtual = pesquisaInventarioProf.value.trim();
       currentPage = 1; // Reset para a primeira página ao pesquisar
-      renderizarEquipamentos(localFiltroAtual, termoPesquisaAtual);
+      renderizarEquipamentos(localFiltroAtual, termoPesquisaAtual, escolaFiltroAtual);
     });
   }
 
   await popularFiltroLocalProfessor();
-
-  // Carregar equipamentos
-  await carregarEquipamentosSupabase();
+  await popularFiltroEscolaProfessor();
 
   // Renderizar equipamentos com filtros padrão
-  renderizarEquipamentos(localFiltroAtual, termoPesquisaAtual);
+  renderizarEquipamentos(localFiltroAtual, termoPesquisaAtual, escolaFiltroAtual);
 });
