@@ -47,7 +47,7 @@ function renderizarEquipamentosSelect(equipamentos) {
     filtrados.slice(0, 50).forEach(eq => {
       const div = document.createElement("div");
       div.className = "autocomplete-item";
-      div.textContent = `${eq.nome}`;
+      div.textContent = `${eq.nome} (Stock: ${getMaxQtyForEquipamento(eq)})`;
       div.addEventListener("click", () => {
         reqPesquisa.value = div.textContent;
         reqPesquisa.style.color = "#8b0000";
@@ -183,16 +183,14 @@ async function carregarEquipamentos() {
     nome: e.descricao || "—",
     local: e.local || null,
     quantidade: Number(e.quantidade ?? 0),
-    stock: e.stock === null || e.stock === undefined ? null : Number(e.stock),
+    stock: Number(e.stock ?? e.quantidade ?? 0),
   }));
 }
 
 function getMaxQtyForEquipamento(eq) {
   if (!eq) return 0;
-  const stock = Number(eq.stock);
-  if (Number.isFinite(stock) && stock >= 0) return stock;
-  const qtd = Number(eq.quantidade);
-  return Number.isFinite(qtd) && qtd >= 0 ? qtd : 0;
+  const qtd = Number(eq.stock);
+  return Number.isFinite(qtd) && qtd > 0 ? qtd : 0;
 }
 
 async function carregarLocais() {
@@ -373,7 +371,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.GMApp?.setupMenuToggle("btnMenuToggleProf", "mainMenuProf");
 
   if (!window.GMApp?.hasAccess("professor")) {
-    window.GMApp?.goTo("adminUsage");
+    if (window.GMApp?.hasAccess("admin")) {
+      window.GMApp?.goTo("adminUsage");
+    } else {
+      window.location.href = "index.html";
+    }
     return;
   }
 
@@ -682,4 +684,3 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 });
-

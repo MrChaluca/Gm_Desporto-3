@@ -35,10 +35,9 @@ async function carregarManutencaoSupabaseMap() {
 }
 
 function disponivelQtd(item) {
-  return Math.max(
-    0,
-    Number(item.quantidade || 0)
-  );
+  const stock = Number(item.stock);
+  if (Number.isFinite(stock)) return Math.max(0, stock);
+  return Math.max(0, Number(item.quantidade || 0));
 }
 
 function formatarEstadoResumo(item) {
@@ -75,10 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const currentUserEmail = (
     localStorage.getItem("gm_desporto_user_email") || ""
   ).toLowerCase();
-  if (!window.GMApp?.hasAccess("professor")) {
-    window.GMApp?.goTo("adminInventory");
-    return;
-  }
+  if (!window.GMApp?.redirectUnlessRole("professor")) return;
 
   let inventario = carregarJSON(STORAGE_KEY);
   let historico = carregarJSON(HISTORY_KEY);
@@ -359,12 +355,16 @@ document.addEventListener("DOMContentLoaded", () => {
       filtrados.slice(0, 50).forEach(eq => {
         const div = document.createElement("div");
         div.className = "autocomplete-item";
-        div.textContent = `${eq.categoria ? eq.categoria + ' - ' : ''}${eq.nome} (Stock: ${eq.quantidade})`;
+        div.textContent = `${eq.categoria ? eq.categoria + ' - ' : ''}${eq.nome} (Stock: ${disponivelQtd(eq)})`;
         div.addEventListener("click", () => {
           relatarPesquisa.value = div.textContent;
           relatarPesquisa.style.color = "#8b0000";
           relatarPesquisa.style.fontWeight = "600";
           relatarEquipamento.value = eq.id;
+          if (relatarQuantidade) {
+            relatarQuantidade.max = String(disponivelQtd(eq));
+            relatarQuantidade.placeholder = `Máx.: ${disponivelQtd(eq)}`;
+          }
           relatarAutocomplete.classList.add("hidden");
         });
         relatarAutocomplete.appendChild(div);
@@ -427,7 +427,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1) Equipamentos primeiro (é o essencial para o professor ver a lista)
     const { data, error } = await supabaseClient
       .from("equipamentos")
-      .select("id,edf_de,descricao,quantidade,stock,empresa_data,estado,estado_bom,estado_razoavel,estado_mau,estado_abate,local,observacao,outras_observacao")
+      .select("id,edf_de,descricao,quantidade,stock,empresa_data,estado_bom,estado_razoavel,estado_mau,estado_abate,local,observacao,outras_observacao")
       .order("descricao");
     if (error) throw error;
 
@@ -445,10 +445,11 @@ document.addEventListener("DOMContentLoaded", () => {
       nome: row.descricao || "",
       categoria: row.edf_de || "",
       quantidade: Number(row.quantidade || 0),
+      stock: Number(row.stock || 0),
       manutencaoQtd: Number(maintMap[row.id] || 0),
       localizacao: row.local || "",
       marcaModelo: row.empresa_data || "",
-      estado: row.estado || "",
+      estado: "",
       estadoBom: row.estado_bom ?? null,
       estadoRazoavel: row.estado_razoavel ?? null,
       estadoMau: row.estado_mau ?? null,
@@ -483,7 +484,8 @@ document.addEventListener("DOMContentLoaded", () => {
       preencherSelectEquipamentos();
     } catch (e) {
       console.error(e);
-      mostrarToast("Servidor indisponível. A usar dados locais.", "error");
+      const message = e?.message || String(e) || "Erro desconhecido";
+      mostrarToast(`Servidor indisponível: ${message}`, "error");
     }
   })();
 
@@ -511,6 +513,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const tipoOcorrencia = relatarTipo.value;
       const qtdRelato = Number(relatarQuantidade.value);
+      const maxRelato = disponivelQtd(equipamento);
+      if (qtdRelato > maxRelato) {
+        mostrarToast(
+          `Quantidade inválida. Máximo disponível para "${equipamento.nome}": ${maxRelato}.`,
+          "error"
+        );
+        if (relatarQuantidade) relatarQuantidade.value = String(maxRelato);
+        return;
+      }
       const descRelato = relatarDescricao
         ? String(relatarDescricao.value).trim()
         : "";
@@ -627,4 +638,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
