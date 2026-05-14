@@ -209,6 +209,21 @@ function atualizarDashboard(lista) {
   if (elAbates) elAbates.textContent = abates;
 }
 
+async function atualizarTotalAbatesDashboard() {
+  const elAbates = document.getElementById("totalAbates");
+  if (!elAbates || typeof supabaseClient === "undefined") return;
+
+  try {
+    const { count, error } = await supabaseClient
+      .from("abates")
+      .select("id", { count: "exact", head: true });
+    if (error) throw error;
+    elAbates.textContent = String(count || 0);
+  } catch (e) {
+    console.warn("Não foi possível carregar o total de abates.", e);
+  }
+}
+
 
 
 function mostrarMensagem(tipo, texto) {
@@ -512,6 +527,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       atualizarDashboard(inventario);
+      await atualizarTotalAbatesDashboard();
       popularFiltroEscolas(inventario);
       renderizarInventario(inventario, filtroLocalAtual, termoPesquisa, filtroEscolaAtual);
       // manutenção removida
@@ -561,6 +577,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   refreshInventarioFromDb();
   renderizarHistorico(termoPesquisaHistorico);
+  atualizarTotalAbatesDashboard();
   (async () => {
     const historicoDb = await carregarHistoricoSupabase();
     if (historicoDb) {
