@@ -25,17 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ─── Mostrar/ocultar senha ────────────────────────────────────
-  document.querySelectorAll(".toggle-pass").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const input = document.getElementById(btn.dataset.target);
-      if (!input) return;
-      const isPass = input.type === "password";
-      input.type = isPass ? "text" : "password";
-      btn.textContent = isPass ? "🙈" : "👁";
-    });
-  });
-
   // ─── Carregar dados do utilizador ─────────────────────────────
   async function carregarPerfil() {
     const inicial = (currentEmail[0] || "?").toUpperCase();
@@ -55,8 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data) {
         if (perfilNome) perfilNome.value = data.nome || "";
         if (perfilEmail) perfilEmail.value = data.email || currentEmail;
-        // Senha: a coluna nao existe em membros, mostrar placeholder
-        if (perfilSenhaAtual) perfilSenhaAtual.placeholder = "••••••••";
+        // A senha real nao e exposta pelo Supabase; mostramos apenas marcador protegido.
+        if (perfilSenhaAtual) perfilSenhaAtual.value = "**********";
 
         const inicialFinal = (data.nome || data.email || "?")[0].toUpperCase();
         if (perfilAvatar) perfilAvatar.textContent = inicialFinal;

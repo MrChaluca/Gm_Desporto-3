@@ -95,26 +95,17 @@
       }
 
       .password-wrapper input {
-        padding-right: 44px !important;
+        padding-right: 18px !important;
       }
 
-      .toggle-pass {
-        position: absolute;
-        right: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: var(--text-muted);
-        font-size: 1rem;
-        padding: 0;
-        line-height: 1;
+      .password-placeholder {
+        color: #5f6673;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        font-size: 1.05rem;
       }
 
-      .toggle-pass:hover { color: var(--wine-dark); }
-
-      .link-mudar-senha {
+.link-mudar-senha {
         display: inline-flex;
         align-items: center;
         gap: 6px;
@@ -209,14 +200,15 @@
               <label for="perfilSenhaAtual">Senha atual</label>
               <div class="password-wrapper">
                 <input
-                  type="password"
+                  type="text"
                   id="perfilSenhaAtual"
                   name="perfilSenhaAtual"
-                  placeholder="••••••••"
-                  autocomplete="current-password"
+                  class="password-placeholder"
+                  value="**********"
+                  autocomplete="off"
                   readonly
+                  aria-label="Senha protegida"
                 />
-                <button type="button" class="toggle-pass" data-target="perfilSenhaAtual" title="Mostrar/ocultar">👁</button>
               </div>
             </div>
 
@@ -250,6 +242,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabaseClient.js"></script>
     <script src="appShell.js"></script>
-    <script src="perfil.js"></script>
+    <script src="perfil.js?v=2"></script>
   </body>
 </html>
