@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const perfilEmailBadge  = document.getElementById("perfilEmailBadge");
   const perfilNome        = document.getElementById("perfilNome");
   const perfilEmail       = document.getElementById("perfilEmail");
-  const perfilSenhaAtual  = document.getElementById("perfilSenhaAtual");
   const perfilForm        = document.getElementById("perfilForm");
   const perfilMsg         = document.getElementById("perfilMsg");
   const btnGuardar        = document.getElementById("btnGuardar");
@@ -44,9 +43,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data) {
         if (perfilNome) perfilNome.value = data.nome || "";
         if (perfilEmail) perfilEmail.value = data.email || currentEmail;
-        // A senha real nao e exposta pelo Supabase; mostramos apenas marcador protegido.
-        if (perfilSenhaAtual) perfilSenhaAtual.value = "**********";
-
         const inicialFinal = (data.nome || data.email || "?")[0].toUpperCase();
         if (perfilAvatar) perfilAvatar.textContent = inicialFinal;
         if (perfilEmailBadge) perfilEmailBadge.textContent = data.email || currentEmail;
