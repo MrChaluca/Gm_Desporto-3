@@ -185,16 +185,6 @@ async function carregarRelatados() {
       wrap.style.flexWrap = "wrap";
       wrap.style.gap = "0.35rem";
 
-      const btnRet = document.createElement("button");
-      btnRet.type = "button";
-      btnRet.className = "btn-secondary small";
-      btnRet.textContent = "Retirar stock";
-      btnRet.dataset.acao = "retirar";
-      btnRet.dataset.modo = "stock";
-      btnRet.dataset.relId = String(r.id);
-      btnRet.dataset.equipId = String(eqId);
-      btnRet.dataset.qtd = String(r.quantidade);
-
       const btnRetQtd = document.createElement("button");
       btnRetQtd.type = "button";
       btnRetQtd.className = "btn-secondary small";
@@ -212,7 +202,6 @@ async function carregarRelatados() {
       btnRem.dataset.acao = "remover-relato";
       btnRem.dataset.relId = String(r.id);
 
-      wrap.appendChild(btnRet);
       wrap.appendChild(btnRetQtd);
       wrap.appendChild(btnRem);
       td5.appendChild(wrap);
