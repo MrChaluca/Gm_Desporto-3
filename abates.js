@@ -9,7 +9,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const inputPesquisa = document.getElementById("equipamentoPesquisa");
   const inputId = document.getElementById("equipamentoId");
   const autocompleteList = document.getElementById("equipamentoAutocomplete");
-  const tipoRetiradaSelect = document.getElementById("tipoRetirada");
   const registoAbateSection = document.getElementById("registoAbate");
   const historicoAbatesSection = document.getElementById("historicoAbates");
   const tabNovoAbate = document.getElementById("tabNovoAbate");
@@ -57,7 +56,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function getTipoRetirada() {
-    return tipoRetiradaSelect?.value === "quantidade" ? "quantidade" : "stock";
+    return "quantidade";
   }
 
   function getValorDisponivel(eq, tipo = getTipoRetirada()) {
@@ -67,7 +66,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function getLabelDisponivel(tipo = getTipoRetirada()) {
-    return tipo === "quantidade" ? "Quantidade" : "Stock";
+    return "Quantidade total";
   }
 
   function getEquipamentoTexto(eq, tipo = getTipoRetirada()) {
@@ -173,7 +172,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   if (inputId) inputId.addEventListener("change", atualizarEquipamentoSelecionado);
-  if (tipoRetiradaSelect) tipoRetiradaSelect.addEventListener("change", atualizarEquipamentoSelecionado);
 
   async function carregarAbates() {
     try {
@@ -247,8 +245,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       ? getValorDisponivel(equipamento, tipoRetirada)
       : 0;
     if (equipamento && quantidade > maxDisponivel) {
-      const alvo = tipoRetirada === "quantidade" ? "na quantidade total" : "em stock";
-      document.querySelector('[data-error-for="quantidade"]').textContent = `Apenas tem ${maxDisponivel} ${alvo}. Não pode abater mais do que existe.`;
+      document.querySelector('[data-error-for="quantidade"]').textContent = `Apenas tem ${maxDisponivel} na quantidade total. Não pode abater mais do que existe.`;
       return;
     }
 
@@ -267,16 +264,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (insertError) throw insertError;
 
-      // 2. Subtrair no campo escolhido
+      // 2. Subtrair na quantidade total
       if (equipamento) {
-        const novaQtd =
-          tipoRetirada === "quantidade"
-            ? Math.max(0, Number(equipamento.quantidade || 0) - quantidade)
-            : Number(equipamento.quantidade || 0);
-        const novoStock =
-          tipoRetirada === "stock"
-            ? Math.max(0, Number(equipamento.stock || 0) - quantidade)
-            : Math.min(Number(equipamento.stock || 0), novaQtd);
+        const novaQtd = Math.max(0, Number(equipamento.quantidade || 0) - quantidade);
+        const novoStock = Math.min(Number(equipamento.stock || 0), novaQtd);
         const patch = {
           stock: novoStock,
           quantidade: novaQtd,
@@ -299,11 +290,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.GMApp?.logAdminAction?.({
         nome: equipamento?.descricao || `Equipamento #${equipId}`,
         acao: "abate registado",
-        detalhes: `Retirou ${quantidade} de ${tipoRetirada === "quantidade" ? "quantidade total" : "stock"}${motivo ? ` | Motivo: ${motivo}` : ""}`,
+        detalhes: `Retirou ${quantidade} de quantidade total${motivo ? ` | Motivo: ${motivo}` : ""}`,
       });
       abateForm.reset();
       inputId.value = "";
-      await carregarEquipamentos(); // Refresh para atualizar o stock no dropdown
+      await carregarEquipamentos(); // Refresh para atualizar a quantidade no autocomplete
       await carregarAbates();
       mostrarPainelAbates("historico");
     } catch (error) {
