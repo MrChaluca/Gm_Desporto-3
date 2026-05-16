@@ -149,17 +149,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return texto.includes("already") || texto.includes("registered") || texto.includes("exists");
   }
 
-  function mensagemErroRegisto(error) {
-    const texto = String(error?.message || "").toLowerCase();
-    if (texto.includes("password") || texto.includes("weak")) {
-      return "A palavra-passe é demasiado fraca. Use pelo menos 6 caracteres.";
-    }
-    if (texto.includes("email")) {
-      return "Verifique se o email está correto.";
-    }
-    return "Não foi possível criar a conta. Tente novamente.";
-  }
-
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -302,20 +291,6 @@ document.addEventListener("DOMContentLoaded", () => {
             registroMsg.className = "form-message error";
           }
         } else {
-          const { error: authError } = await supabaseClient.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                nome,
-                role,
-              },
-            },
-          });
-          if (authError && !erroDeEmailJaRegistado(authError)) {
-            console.warn("Pedido guardado, mas a conta Auth ainda não foi criada.", authError);
-          }
-          await supabaseClient.auth.signOut();
           if (registroMsg) {
             registroMsg.textContent = "Pedido enviado. Aguarde a aprovação do admin.";
             registroMsg.className = "form-message success";
