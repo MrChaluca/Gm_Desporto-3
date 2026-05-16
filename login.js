@@ -291,26 +291,6 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        const { error: authError } = await supabaseClient.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              nome,
-              role,
-            },
-          },
-        });
-
-        if (authError && !erroDeEmailJaRegistado(authError)) {
-          console.error(authError);
-          if (registroMsg) {
-            registroMsg.textContent = mensagemErroRegisto(authError);
-            registroMsg.className = "form-message error";
-          }
-          return;
-        }
-
         const { error } = await supabaseClient
           .from("solicitacoes_registo")
           .upsert([{ nome, email, role }], { onConflict: "email" });
@@ -322,11 +302,22 @@ document.addEventListener("DOMContentLoaded", () => {
             registroMsg.className = "form-message error";
           }
         } else {
+          const { error: authError } = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                nome,
+                role,
+              },
+            },
+          });
+          if (authError && !erroDeEmailJaRegistado(authError)) {
+            console.warn("Pedido guardado, mas a conta Auth ainda não foi criada.", authError);
+          }
           await supabaseClient.auth.signOut();
           if (registroMsg) {
-            registroMsg.textContent = authError
-              ? "Pedido enviado. Aguarde a aprovação do admin."
-              : "Conta criada e pedido enviado. Aguarde a aprovação do admin.";
+            registroMsg.textContent = "Pedido enviado. Aguarde a aprovação do admin.";
             registroMsg.className = "form-message success";
           }
           registroForm.reset();
