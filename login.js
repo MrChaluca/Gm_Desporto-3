@@ -144,6 +144,22 @@ document.addEventListener("DOMContentLoaded", () => {
     return texto.includes("confirm") || texto.includes("verified") || texto.includes("email not confirmed");
   }
 
+  function erroDeEmailJaRegistado(error) {
+    const texto = String(error?.message || error?.name || "").toLowerCase();
+    return texto.includes("already") || texto.includes("registered") || texto.includes("exists");
+  }
+
+  function mensagemErroRegisto(error) {
+    const texto = String(error?.message || "").toLowerCase();
+    if (texto.includes("password") || texto.includes("weak")) {
+      return "A palavra-passe é demasiado fraca. Use pelo menos 6 caracteres.";
+    }
+    if (texto.includes("email")) {
+      return "Verifique se o email está correto.";
+    }
+    return "Não foi possível criar a conta. Tente novamente.";
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -266,6 +282,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
+        const membroExistente = await getMemberByEmail(email);
+        if (membroExistente) {
+          if (registroMsg) {
+            registroMsg.textContent = "Este email já está aprovado. Entre ou use recuperar conta.";
+            registroMsg.className = "form-message error";
+          }
+          return;
+        }
+
         const { error: authError } = await supabaseClient.auth.signUp({
           email,
           password,
@@ -277,18 +302,18 @@ document.addEventListener("DOMContentLoaded", () => {
           },
         });
 
-        if (authError) {
+        if (authError && !erroDeEmailJaRegistado(authError)) {
           console.error(authError);
           if (registroMsg) {
-            registroMsg.textContent = "Não foi possível criar a conta. Verifique o email e a palavra-passe.";
+            registroMsg.textContent = mensagemErroRegisto(authError);
             registroMsg.className = "form-message error";
           }
           return;
         }
 
-        const { error } = await supabaseClient.from("solicitacoes_registo").insert([
-          { nome, email, role }
-        ]);
+        const { error } = await supabaseClient
+          .from("solicitacoes_registo")
+          .upsert([{ nome, email, role }], { onConflict: "email" });
 
         if (error) {
           console.error(error);
@@ -299,7 +324,9 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           await supabaseClient.auth.signOut();
           if (registroMsg) {
-            registroMsg.textContent = "Conta criada e pedido enviado. Aguarde a aprovação do admin.";
+            registroMsg.textContent = authError
+              ? "Pedido enviado. Aguarde a aprovação do admin."
+              : "Conta criada e pedido enviado. Aguarde a aprovação do admin.";
             registroMsg.className = "form-message success";
           }
           registroForm.reset();
