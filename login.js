@@ -59,10 +59,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (btnToggleRegistro) {
-      btnToggleRegistro.textContent = isRegistro ? "Já tem conta? Entrar" : "Não tem conta? Registar-se";
+      btnToggleRegistro.textContent = isRegistro ? "Entrar" : "Criar conta";
     }
     if (btnToggleRecover) {
-      btnToggleRecover.textContent = isRecover ? "Já tem conta? Entrar" : "Recuperar conta";
+      btnToggleRecover.textContent = isRecover ? "Entrar" : "Recuperar conta";
     }
   }
 

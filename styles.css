@@ -167,7 +167,10 @@ body {
 }
 
 .registration-toggle {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
   margin-top: 16px;
 }
 
@@ -183,7 +186,7 @@ body {
 }
 
 .btn-link:hover {
-  color: var(--white);
+  color: var(--wine-dark);
 }
 
 
@@ -1470,4 +1473,3 @@ body {
     grid-template-columns: 1fr;
   }
 }
-
