@@ -12,6 +12,12 @@ function validarSenhaEspecial(email, senha) {
   return ["profadimin@gmail.com", "profadmin@gmail.com"].includes(safeEmail) && safeSenha === "123456";
 }
 
+function validarSenhaProfessorFixo(email, senha) {
+  const safeEmail = String(email || "").trim().toLowerCase();
+  const safeSenha = String(senha || "");
+  return safeEmail === "prof@gmail.com" && safeSenha === "123456";
+}
+
 async function guardarAdminEspecial(email) {
   if (!email || typeof supabaseClient === "undefined") return;
   try {
@@ -176,6 +182,14 @@ document.addEventListener("DOMContentLoaded", () => {
       setUserEmail(emailDigitado);
       window.location.href = window.GMApp?.routes?.adminInventory || "principal.html";
       return;
+    }
+
+    if (validarSenhaProfessorFixo(emailDigitado, senhaDigitada)) {
+      const membroProfessor = await getMemberByEmail(emailDigitado);
+      if (membroProfessor) {
+        entrarComoMembro(emailDigitado, membroProfessor);
+        return;
+      }
     }
 
     // 2. Autenticação real pelo Supabase Auth
